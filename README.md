@@ -2,7 +2,7 @@
 A microservices-based property management system handling residents, billing, maintance requests and reservations, built as part of the PG3402 Microservices exam project.
 
 ## Documentation
-- Project Overview & User Stories - background, architecture, user roles, and MVP scope
+- [Project Overview & User Stories](docs/requirements.md) - background, architecture, user roles, and MVP scope
 
 ## Architecture
 
