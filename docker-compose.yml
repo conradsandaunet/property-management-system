@@ -1,0 +1,74 @@
+services:
+  resident-db:
+    image: postgres:16-alpine
+    container_name: resident-db
+    environment:
+      POSTGRES_DB: resident
+      POSTGRES_USER: resident
+      POSTGRES_PASSWORD: resident
+    ports:
+      - "5432:5432"
+    volumes:
+      - resident-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resident -d resident"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: billing-db
+    environment:
+      POSTGRES_DB: billing
+      POSTGRES_USER: billing
+      POSTGRES_PASSWORD: billing
+    ports:
+      - "5433:5432"
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U billing -d billing"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  maintenance-db:
+    image: postgres:16-alpine
+    container_name: maintenance-db
+    environment:
+      POSTGRES_DB: maintenance
+      POSTGRES_USER: maintenance
+      POSTGRES_PASSWORD: maintenance
+    ports:
+      - "5434:5432"
+    volumes:
+      - maintenance-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maintenance -d maintenance"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  reservation-db:
+    image: postgres:16-alpine
+    container_name: reservation-db
+    environment:
+      POSTGRES_DB: reservation
+      POSTGRES_USER: reservation
+      POSTGRES_PASSWORD: reservation
+    ports:
+      - "5435:5432"
+    volumes:
+      - reservation-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reservation -d reservation"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  resident-db-data:
+  billing-db-data:
+  maintenance-db-data:
+  reservation-db-data:
