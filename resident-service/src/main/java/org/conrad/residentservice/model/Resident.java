@@ -29,6 +29,9 @@ public class Resident {
     @Column(length = 20)
     private String phone;
 
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @Column(name = "is_manager", nullable = false)
     private boolean manager;
 
