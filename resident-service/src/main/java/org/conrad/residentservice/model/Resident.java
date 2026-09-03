@@ -18,7 +18,7 @@ public class Resident {
     private Long id;
 
     @Column(name = "first_name", nullable = false, length = 100)
-    private String firsName;
+    private String firstName;
 
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
@@ -28,6 +28,9 @@ public class Resident {
 
     @Column(length = 20)
     private String phone;
+
+    @Column(name = "is_manager", nullable = false)
+    private boolean manager;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_id", nullable = false)
