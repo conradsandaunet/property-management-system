@@ -1,0 +1,1 @@
+ALTER TABLE resident ADD COLUMN password_hash VARCHAR(255) NOT NULL;

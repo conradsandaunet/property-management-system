@@ -29,8 +29,6 @@ public class Apartment {
     @Column(name = "building_name", nullable = false)
     private String buildingName;
 
-    @Column(name = "is_manager", nullable = false)
-    private boolean manager;
 
     @OneToMany(mappedBy = "apartment")
     @Builder.Default
