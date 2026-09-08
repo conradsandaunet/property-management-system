@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 
+@Component
 public class DevInvoiceSeedConfig implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DevInvoiceSeedConfig.class);
