@@ -40,7 +40,7 @@ public class Invoice {
     @Builder.Default
     private List<InvoiceLine> lines = new ArrayList<>();
 
-    public addLine(InvoiceLine line) {
+    public void addLine(InvoiceLine line) {
         line.setInvoice(this);
         lines.add(line);
     }
@@ -49,6 +49,13 @@ public class Invoice {
         return lines.stream()
                 .map(InvoiceLine::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public InvoiceStatus getEffectiveStatus() {
+        if (status == InvoiceStatus.PENDING && dueDate.isBefore(LocalDate.now())) {
+            return InvoiceStatus.OVERDUE;
+        }
+        return status;
     }
 
 }
