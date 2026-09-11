@@ -1,6 +1,5 @@
 package org.conrad.billingservice.config;
 
-import org.conrad.billingservice.dto.InvoiceLineResponse;
 import org.conrad.billingservice.model.Invoice;
 import org.conrad.billingservice.model.InvoiceCategory;
 import org.conrad.billingservice.model.InvoiceLine;

@@ -20,7 +20,7 @@ public record InvoiceResponse(
                 invoice.getId(),
                 invoice.getPeriod(),
                 invoice.getDueDate(),
-                invoice.getStatus(),
+                invoice.getEffectiveStatus(),
                 invoice.getTotalAmount(),
                 invoice.getLines().stream().map(InvoiceLineResponse::from).toList()
         );
