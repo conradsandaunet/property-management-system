@@ -1,11 +1,12 @@
 package org.conrad.reservationservice.web;
 
+import org.conrad.reservationservice.dto.ReservationCreateRequest;
 import org.conrad.reservationservice.model.Reservation;
 import org.conrad.reservationservice.service.ReservationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/reservations")
@@ -18,7 +19,7 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<Reservation> reserve(@RequestBody ReserveRequest request) {
+    public ResponseEntity<Reservation> reserve(@RequestBody ReservationCreateRequest request) {
         Reservation reservation = reservationService.reserve(
                 request.resourceId(),
                 request.residentId(),
@@ -34,14 +35,12 @@ public class ReservationController {
         return ResponseEntity.ok(cancelled);
     }
 
-    public record ReserveRequest(
-            Long resourceId,
-            Long residentId,
-            LocalDateTime startTime,
-            LocalDateTime endTime
-    ) {
+    @GetMapping
+    public ResponseEntity<List<Reservation>> listForResource(@RequestParam Long resourceId) {
+        List<Reservation> reservations = reservationService.listForResource(resourceId);
+        return ResponseEntity.ok(reservations);
     }
+
 }
 //TODO: residentId skal hentes fra JWT via SecurityContextHolder når security-laget er på plass
-//TODO: bytt ReserveRequest til en egen DTO i dto-pakken
 //TODO: returner en ReservationResponse i stedet for Reservation-entiteten direkte

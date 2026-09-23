@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ReservationService {
@@ -55,5 +56,10 @@ public class ReservationService {
         }
         reservation.setStatus(ReservationStatus.CANCELLED);
         return reservationRepository.save(reservation);
+    }
+
+    public List<Reservation> listForResource(Long resourceId) {
+        resourceRepository.findById(resourceId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
+        return reservationRepository.findByResourceIdAndStatus(resourceId, ReservationStatus.ACTIVE);
     }
 }
