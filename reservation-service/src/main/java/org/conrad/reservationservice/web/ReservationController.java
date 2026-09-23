@@ -3,10 +3,7 @@ package org.conrad.reservationservice.web;
 import org.conrad.reservationservice.model.Reservation;
 import org.conrad.reservationservice.service.ReservationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -31,6 +28,12 @@ public class ReservationController {
         return ResponseEntity.ok(reservation);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Reservation> cancel(@PathVariable Long id, @RequestParam Long residentId) {
+        Reservation cancelled = reservationService.cancel(id, residentId);
+        return ResponseEntity.ok(cancelled);
+    }
+
     public record ReserveRequest(
             Long resourceId,
             Long residentId,
@@ -39,3 +42,6 @@ public class ReservationController {
     ) {
     }
 }
+//TODO: residentId skal hentes fra JWT via SecurityContextHolder når security-laget er på plass
+//TODO: bytt ReserveRequest til en egen DTO i dto-pakken
+//TODO: returner en ReservationResponse i stedet for Reservation-entiteten direkte

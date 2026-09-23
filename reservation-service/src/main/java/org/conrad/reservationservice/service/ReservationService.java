@@ -42,4 +42,18 @@ public class ReservationService {
         return reservationRepository.save(reservation);
 
     }
+
+    public Reservation cancel(Long reservationId, Long residentId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found"));
+
+        if (!reservation.getResidentId().equals(residentId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only cancel your own reservations");
+        }
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Reservation is already cancelled");
+        }
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        return reservationRepository.save(reservation);
+    }
 }
