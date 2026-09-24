@@ -5,6 +5,7 @@ import org.conrad.reservationservice.dto.ReservationResponse;
 import org.conrad.reservationservice.model.Reservation;
 import org.conrad.reservationservice.service.ReservationService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class ReservationController {
     public ResponseEntity<ReservationResponse> reserve(@RequestBody ReservationCreateRequest request) {
         Reservation reservation = reservationService.reserve(
                 request.resourceId(),
-                request.residentId(),
+                currentResidentId(),
                 request.startTime(),
                 request.endTime()
         );
@@ -32,9 +33,8 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ReservationResponse> cancel(
-            @PathVariable Long id,
-            @RequestParam Long residentId) {
-        Reservation cancelled = reservationService.cancel(id, residentId);
+            @PathVariable Long id) {
+        Reservation cancelled = reservationService.cancel(id, currentResidentId());
         return ResponseEntity.ok(toResponse(cancelled));
     }
 
@@ -43,6 +43,10 @@ public class ReservationController {
         List<ReservationResponse> responses = reservationService.listForResource(resourceId)
                 .stream().map(this::toResponse).toList();
         return ResponseEntity.ok(responses);
+    }
+
+    private Long currentResidentId() {
+        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     private ReservationResponse toResponse(Reservation reservation) {
@@ -58,4 +62,3 @@ public class ReservationController {
     }
 
 }
-//TODO: residentId skal hentes fra JWT via SecurityContextHolder når security-laget er på plass
