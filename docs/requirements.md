@@ -19,8 +19,8 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 
 ### Resident
 - [x] 🔴 As a resident, I want to see my monthly invoice (shared costs, water, parking, etc.), so that I know what I owe.
-- [ ] 🔴 As a resident, I want to simulate paying my invoice, so that the status changes to "Paid".
-- [ ] 🟡 As a resident, I want to see a history of previous invoices, so that I can check whether I've paid for past months.
+- [x] 🔴 As a resident, I want to simulate paying my invoice, so that the status changes to "Paid".
+- [x] 🟡 As a resident, I want to see a history of previous invoices, so that I can check whether I've paid for past months.
 
 ### Board / Property Manager
 - [ ] 🔴 As a property manager, I want to generate monthly invoices for all apartments, so that I don't have to create them manually one by one.

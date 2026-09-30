@@ -1,14 +1,13 @@
-package org.conrad.billingservice.web;
+package org.conrad.billingservice.controller;
 
+import org.conrad.billingservice.service.InvoiceService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.conrad.billingservice.dto.InvoiceResponse;
 import org.conrad.billingservice.model.Invoice;
 import org.conrad.billingservice.repository.InvoiceRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -18,8 +17,12 @@ import java.util.List;
 public class InvoiceController {
 
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceService invoiceService;
 
-    public InvoiceController(InvoiceRepository invoiceRepository) { this.invoiceRepository = invoiceRepository; }
+    public InvoiceController(InvoiceRepository invoiceRepository, InvoiceService invoiceService) {
+        this.invoiceRepository = invoiceRepository;
+        this.invoiceService = invoiceService;
+    }
 
     @GetMapping("/current")
     public InvoiceResponse current(Authentication authentication) {
@@ -39,11 +42,15 @@ public class InvoiceController {
 
     @GetMapping("/{id}")
     public InvoiceResponse one(@PathVariable Long id, Authentication authentication) {
-        Long residentId = residentId(authentication);
-        Invoice invoice = invoiceRepository.findByIdAndResidentId(id, residentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found for this resident"));
-        return InvoiceResponse.from(invoice);
+        return invoiceService.getInvoiceById(id, residentId(authentication));
     }
+
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<InvoiceResponse> payInvoice(@PathVariable Long id, Authentication authentication) {
+        Long residentId = residentId(authentication);
+        return ResponseEntity.ok(invoiceService.payInvoice(id, residentId));
+    }
+
 
     private Long residentId(Authentication authentication) {return Long.parseLong(authentication.getName()); }
 }
