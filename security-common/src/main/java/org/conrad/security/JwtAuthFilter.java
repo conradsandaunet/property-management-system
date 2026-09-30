@@ -1,4 +1,4 @@
-package org.conrad.reservationservice.security;
+package org.conrad.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

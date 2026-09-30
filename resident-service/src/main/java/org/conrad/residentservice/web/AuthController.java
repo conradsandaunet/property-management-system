@@ -5,7 +5,7 @@ import org.conrad.residentservice.dto.LoginResponse;
 import org.conrad.residentservice.dto.MeResponse;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ResidentRepository;
-import org.conrad.residentservice.security.JwtService;
+import org.conrad.security.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +48,8 @@ public class AuthController {
         }
 
         log.info("Successful login for email={}", resident.getEmail());
-        return ResponseEntity.ok(new LoginResponse(jwtService.issueToken(resident)));
+        String token = jwtService.issueToken(resident.getId().toString(), resident.getEmail(), resident.isManager());
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @GetMapping("/me")

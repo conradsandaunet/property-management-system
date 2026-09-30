@@ -2,11 +2,13 @@ package org.conrad.billingservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 
 @SpringBootApplication
+@ComponentScan(basePackages = {"org.conrad.billingservice", "org.conrad.security"})
 public class BillingServiceApplication {
 
     public static void main(String[] args) {

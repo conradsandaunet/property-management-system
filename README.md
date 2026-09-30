@@ -13,6 +13,21 @@ A microservices-based property management system handling residents, billing, ma
 | Maintenance Service | Maintenance requests and work orders |
 | Reservation Service | Booking of shared resources |
 
+## First-time setup
+
+`resident-service`, `billing-service`, and `reservation-service` all share
+JWT issuing/validation code from a local library module, `security-common`
+(not a deployable service — no port, nothing to run). Before building or
+running any of those three services for the first time (or after pulling
+changes to `security-common`), install it into your local Maven repo:
+
+```bash
+mvn install -pl security-common
+```
+
+Without this, the other services will fail to resolve the `security-common`
+dependency.
+
 ## Running resident-service
 
 `resident-service` requires two settings before it will start — there is no

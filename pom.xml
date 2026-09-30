@@ -12,6 +12,7 @@
     <description>Property Management System - PG3402 Microservices Exam</description>
 
     <modules>
+        <module>security-common</module>
         <module>resident-service</module>
         <module>billing-service</module>
         <module>maintenance-service</module>

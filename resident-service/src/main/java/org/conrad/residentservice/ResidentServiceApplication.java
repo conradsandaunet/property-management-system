@@ -3,10 +3,12 @@ package org.conrad.residentservice;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.io.File;
 
 @SpringBootApplication
+@ComponentScan(basePackages = {"org.conrad.residentservice", "org.conrad.security"})
 public class ResidentServiceApplication {
 
     public static void main(String[] args) {
