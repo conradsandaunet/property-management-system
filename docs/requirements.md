@@ -48,10 +48,10 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 ## 2.4 Reservation Service
 
 ### Resident
-- [ ] 🔴 As a resident, I want to see available time slots for a shared resource (e.g. guest parking, common room), so that I know when I can book it.
-- [ ] 🔴 As a resident, I want to reserve a shared resource for a given time slot, so that I secure access to it.
-- [ ] 🟡 As a resident, I want to cancel my own reservation, so that the resource becomes available to others again.
+- [x] 🔴 As a resident, I want to see available time slots for a shared resource (e.g. guest parking, common room), so that I know when I can book it.
+- [x] 🔴 As a resident, I want to reserve a shared resource for a given time slot, so that I secure access to it.
+- [x] 🟡 As a resident, I want to cancel my own reservation, so that the resource becomes available to others again.
 
 ### Board / Property Manager
-- [ ] 🔴 As a board member, I want to see all reservations for a given resource, so that I have an overview of its usage.
+- [x] 🔴 As a board member, I want to see all reservations for a given resource, so that I have an overview of its usage.
 - [ ] 🟡 As a board member, I want to block a resource (e.g. set the common room to "MAINTENANCE" for a period), so that residents cannot book it while it's unavailable.
