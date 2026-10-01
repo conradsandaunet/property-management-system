@@ -37,12 +37,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             try {
                 Claims claims = jwtService.validateAndParse(token);
-                boolean isManager = claims.get("manager", Boolean.class);
+                boolean isManager = Boolean.TRUE.equals(claims.get("manager", Boolean.class));
                 GrantedAuthority authority = new SimpleGrantedAuthority(isManager ? "ROLE_BOARD" : "ROLE_RESIDENT");
 
                 var authentication = new UsernamePasswordAuthenticationToken(
                         claims.getSubject(), null, List.of(authority)
                 );
+                authentication.setDetails(claims);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException e) {
                 SecurityContextHolder.clearContext();
