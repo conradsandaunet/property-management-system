@@ -48,7 +48,8 @@ public class AuthController {
         }
 
         log.info("Successful login for email={}", resident.getEmail());
-        String token = jwtService.issueToken(resident.getId().toString(), resident.getEmail(), resident.isManager());
+        String token = jwtService.issueToken(resident.getId().toString(), resident.getEmail(), resident.isManager(),
+                resident.getApartment().getId());
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
