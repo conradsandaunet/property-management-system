@@ -1,4 +1,12 @@
 package org.conrad.billingservice.dto;
 
-public class PaymentSummaryResponse {
+import java.util.List;
+
+public record PaymentOverviewResponse(
+        String period,
+        long paid,
+        long pending,
+        long overdue,
+        List<InvoiceResponse> invoices
+) {
 }

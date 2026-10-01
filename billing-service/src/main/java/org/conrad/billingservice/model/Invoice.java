@@ -21,8 +21,8 @@ public class Invoice {
     @SequenceGenerator(name = "invoice_seq", sequenceName = "invoice_seq", allocationSize = 1)
     private Long id;
 
-    @Column(name = "resident_id", nullable = false)
-    private Long residentId;
+    @Column(name = "apartment_id", nullable = false)
+    private Long apartmentId;
 
     @Column(nullable = false, length = 7)
     private String period;

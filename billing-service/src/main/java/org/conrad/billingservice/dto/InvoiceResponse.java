@@ -9,6 +9,7 @@ import java.util.List;
 
 public record InvoiceResponse(
         Long id,
+        Long apartmentId,
         String period,
         LocalDate dueDate,
         InvoiceStatus status,
@@ -18,6 +19,7 @@ public record InvoiceResponse(
     public static InvoiceResponse from(Invoice invoice) {
         return new InvoiceResponse(
                 invoice.getId(),
+                invoice.getApartmentId(),
                 invoice.getPeriod(),
                 invoice.getDueDate(),
                 invoice.getEffectiveStatus(),
