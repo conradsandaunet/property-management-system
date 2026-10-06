@@ -31,6 +31,13 @@ public class MaintenanceRequest {
     @Column(nullable = false)
     private MaintenanceCategory category;
 
+    @Column(nullable = false, length = 100)
+    private String location;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MaintenancePriority priority;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
