@@ -24,9 +24,6 @@ public class MaintenanceRequest {
     @Column(name = "resident_id", nullable = false)
     private Long residentId;
 
-    @Column(name = "apartment_id", nullable = false)
-    private Long apartmentId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MaintenanceCategory category;
