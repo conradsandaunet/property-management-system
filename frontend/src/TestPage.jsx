@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMe } from "./api";
+import { getMe } from "./api/auth";
 import "./TestPage.css";
 
 export default function TestPage({ token, onLogout }) {
