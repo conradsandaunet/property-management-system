@@ -31,7 +31,7 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 
 ### Resident
 - [x] 🔴 As a resident, I want to create a maintenance request with category, location, description, and priority, so that I can report an issue in my apartment.
-- [ ] 🔴 As a resident, I want to see the status of my own requests (Submitted → Assigned → In progress → Resolved), so that I know where my case stands.
+- [x] 🔴 As a resident, I want to see the status of my own requests (Submitted → Assigned → In progress → Resolved), so that I know where my case stands.
 - [ ] 🟡 As a resident, I want to add a comment to an open request, so that I can provide more information as it comes up.
 
 ### Board / Property Manager
