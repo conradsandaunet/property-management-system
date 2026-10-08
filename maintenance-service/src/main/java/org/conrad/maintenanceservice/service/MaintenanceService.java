@@ -36,7 +36,7 @@ public class MaintenanceService {
         return repository.findByResidentIdOrderByCreatedAtDesc(residentId);
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     public MaintenanceResponse getById(Long id, Long residentId) {
         MaintenanceRequest request = repository.findByIdAndResidentId(id, residentId)
                 .orElseThrow(() -> new ResponseStatusException(

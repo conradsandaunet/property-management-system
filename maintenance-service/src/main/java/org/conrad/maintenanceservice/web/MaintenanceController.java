@@ -35,6 +35,11 @@ public class MaintenanceController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MaintenanceResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(maintenanceService.getById(id, currentResidentId()));
+    }
+
     private Long currentResidentId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
@@ -48,7 +53,8 @@ public class MaintenanceController {
                 r.getDescription(),
                 r.getPriority(),
                 r.getStatus(),
-                r.getCreatedAt()
+                r.getCreatedAt(),
+                r.getUpdatedAt()
         );
     }
 }
