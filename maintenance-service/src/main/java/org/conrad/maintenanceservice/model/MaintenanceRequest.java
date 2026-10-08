@@ -40,7 +40,7 @@ public class MaintenanceRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MaintenanceStatus status = MaintenanceStatus.OPEN;
+    private MaintenanceStatus status = MaintenanceStatus.SUBMITTED;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,8 +1,8 @@
 package org.conrad.maintenanceservice.model;
 
 public enum MaintenanceStatus {
-    OPEN,
+    SUBMITTED,
+    ASSIGNED,
     IN_PROGRESS,
-    RESOLVED,
-    CLOSED
+    RESOLVED
 }
