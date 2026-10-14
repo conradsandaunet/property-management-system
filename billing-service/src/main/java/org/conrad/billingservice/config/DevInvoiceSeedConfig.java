@@ -18,7 +18,7 @@ import java.time.YearMonth;
 public class DevInvoiceSeedConfig implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DevInvoiceSeedConfig.class);
-    private static final Long SEED_RESIDENT_ID = 1L;
+    private static final Long SEED_APARTMENT_ID = 1L;
 
     private final InvoiceRepository invoiceRepository;
 
@@ -34,7 +34,7 @@ public class DevInvoiceSeedConfig implements ApplicationRunner {
         LocalDate dueDate = period.atDay(15);
 
         Invoice invoice = Invoice.builder()
-                .residentId(SEED_RESIDENT_ID)
+                .apartmentId(SEED_APARTMENT_ID)
                 .period(period.toString())
                 .dueDate(dueDate)
                 .build();
@@ -44,7 +44,7 @@ public class DevInvoiceSeedConfig implements ApplicationRunner {
         invoice.addLine(line(InvoiceCategory.PARKING, "Parkeringsplass", new BigDecimal("500.00")));
 
         invoiceRepository.save(invoice);
-        log.info("Seeded a demo invoice for residentId={} (period={})", SEED_RESIDENT_ID, period);
+        log.info("Seeded a demo invoice for apartmentId={} (period={})", SEED_APARTMENT_ID, period);
     }
 
     private InvoiceLine line(InvoiceCategory category, String description, BigDecimal amount) {

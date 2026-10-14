@@ -8,9 +8,13 @@ import java.util.Optional;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
-    List<Invoice> findByResidentIdOrderByPeriodDesc(Long residentId);
+    List<Invoice> findByApartmentIdOrderByPeriodDesc(Long apartmentId);
 
-    Optional<Invoice> findFirstByResidentIdOrderByPeriodDesc(Long residentId);
+    Optional<Invoice> findFirstByApartmentIdOrderByPeriodDesc(Long apartmentId);
 
-    Optional<Invoice> findByIdAndResidentId(Long id, Long residentId);
+    Optional<Invoice> findByIdAndApartmentId(Long id, Long apartmentId);
+
+    boolean existsByApartmentIdAndPeriod(Long apartmentId, String period);
+
+    List<Invoice> findByPeriod(String period);
 }

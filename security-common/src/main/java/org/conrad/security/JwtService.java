@@ -24,13 +24,17 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMinutes = expirationMinutes;
     }
-
     public String issueToken(String subject, String email, boolean manager) {
+        return issueToken(subject, email, manager, null);
+    }
+
+    public String issueToken(String subject, String email, boolean manager, Long apartmentId) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(subject)
                 .claim("email", email)
                 .claim("manager", manager)
+                .claim("apartmentId", apartmentId)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)))
                 .signWith(key)
