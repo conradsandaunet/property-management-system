@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getMe } from "./api";
+import { Link } from "react-router-dom";
+import { getMe } from "./api/auth";
 import "./TestPage.css";
 
 export default function TestPage({ token, onLogout }) {
@@ -46,6 +47,17 @@ export default function TestPage({ token, onLogout }) {
               </span>
             </li>
           </ul>
+        )}
+
+        {me && !me.manager && (
+            <nav className="dash-nav">
+              <Link className="dash-nav-link" to="/maintenance">
+                My maintenance requests
+              </Link>
+                <Link className="dash-nav-link" to="/maintenance/new">
+                  Report a new isssue
+                </Link>
+            </nav>
         )}
 
         <button className="dash-logout" onClick={onLogout}>
