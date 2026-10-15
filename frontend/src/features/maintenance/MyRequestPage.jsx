@@ -21,7 +21,6 @@ const PRIORITY_LABELS = {
     LOW: "Low",
     MEDIUM: "Medium",
     HIGH: "High",
-    URGENT: "Urgent",
 };
 
 function formatDate(iso) {
