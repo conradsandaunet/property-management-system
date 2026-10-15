@@ -3,12 +3,14 @@ package org.conrad.maintenanceservice.service;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
+import org.conrad.maintenanceservice.model.MaintenanceStatus;
 import org.conrad.maintenanceservice.repository.MaintenanceRequestRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -43,5 +45,14 @@ public class MaintenanceService {
                         HttpStatus.NOT_FOUND, "Maintenance request not found for this resident"
                 ));
         return MaintenanceResponse.from(request);
+    }
+
+    @Transactional(readOnly = false)
+    public List<MaintenanceRequest> listOpen() {
+        return repository.findByStatusNotOrderByCreatedAtAsc(MaintenanceStatus.RESOLVED)
+                .stream()
+                .sorted(Comparator.comparing(MaintenanceRequest::getPriority).reversed()
+                        .thenComparing(MaintenanceRequest::getCreatedAt))
+                .toList();
     }
 }

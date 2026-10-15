@@ -35,6 +35,13 @@ public class MaintenanceController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/open")
+    public ResponseEntity<List<MaintenanceResponse>> getOpenRequests() {
+        List<MaintenanceResponse> responses = maintenanceService.listOpen()
+                .stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MaintenanceResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(maintenanceService.getById(id, currentResidentId()));
