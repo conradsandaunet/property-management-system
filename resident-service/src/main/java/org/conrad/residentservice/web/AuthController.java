@@ -67,6 +67,7 @@ public class AuthController {
                 resident.getFirstName(),
                 resident.getLastName(),
                 resident.getEmail(),
+                resident.getPhone(),
                 resident.isManager(),
                 resident.isActive(),
                 apartment.getId(),

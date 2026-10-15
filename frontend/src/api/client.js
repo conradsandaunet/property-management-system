@@ -31,7 +31,7 @@ export async function request(path, { token, method = "GET", body } = {}) {
         body: body && JSON.stringify(body),
     });
 
-    if (token && (response.status == 401 || (response.status == 403 && isExpired(tokgen)))) {
+    if (token && (response.status == 401 || (response.status == 403 && isExpired(token)))) {
         onUnauthorized();
     }
 
@@ -39,5 +39,6 @@ export async function request(path, { token, method = "GET", body } = {}) {
         throw new ApiError(response.status, `Request failed: ${response.status}`);
     }
 
-    return response.status === 204 ? null : response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
 }

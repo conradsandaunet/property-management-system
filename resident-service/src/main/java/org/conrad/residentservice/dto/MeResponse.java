@@ -5,6 +5,7 @@ public record MeResponse(
         String firstName,
         String lastName,
         String email,
+        String phone,
         boolean manager,
         boolean active,
         Long apartmentId,

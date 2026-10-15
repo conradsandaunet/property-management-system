@@ -46,11 +46,44 @@ export default function TestPage({ token, onLogout }) {
                 {me.manager ? "Board" : "Resident"}
               </span>
             </li>
+            <li className="dash-row">
+              <span className="dash-row-label">Apartment</span>
+              <span className="dash-row-value">
+                {me.apartmentNumber} · Floor {me.floor}
+              </span>
+            </li>
+            <li className="dash-row">
+              <span className="dash-row-label">Building</span>
+              <span className="dash-row-value">{me.buildingName}</span>
+            </li>
+            <li className="dash-row">
+              <span className="dash-row-label">Status</span>
+              <span className="dash-row-value">
+                {me.active ? "Active resident" : "Inactive"}
+              </span>
+            </li>
           </ul>
+        )}
+
+        {me && me.manager && (
+            <nav className="dash-nav">
+              <Link className="dash-nav-link" to="/board/overview">
+                Building overview
+              </Link>
+              <Link className="dash-nav-link" to="/board/residents">
+                Manage residents
+              </Link>
+            </nav>
         )}
 
         {me && !me.manager && (
             <nav className="dash-nav">
+              <Link className="dash-nav-link" to="/household">
+                My household
+              </Link>
+              <Link className="dash-nav-link" to="/contact">
+                Contact details
+              </Link>
               <Link className="dash-nav-link" to="/maintenance">
                 My maintenance requests
               </Link>
