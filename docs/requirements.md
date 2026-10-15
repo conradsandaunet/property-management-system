@@ -10,10 +10,14 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [x] 🔴 As a resident, I want to update my contact information (email, phone), so that the board and maintenance staff can reach me.
 - [x] 🟡 As a resident, I want to see the status of my apartment (e.g. "Active resident"), so that I know my registration is valid
 
+
 ### Board / Property Manager
 - [x] 🔴 As a board member, I want to see an overview of the building (number of apartments, occupied, vacant, number of residents), so that I have a full overview of the property.
 - [x] 🔴 As a board member, I want to add, edit, and remove residents from an apartment, so that the registry is always up to date when people move in/out.
+- [ ] 🔴 As a board member, I want to add, edit, and remove apartments (number, floor, building name), so that new units can be registered before residents move in.
 - [x] 🟡 As a board member, I want to search for a resident by name or apartment number, so that I can quickly find the right information.
+- [ ] ⚪ As a board member, I want to upload and remove photos of an apartment, so that the registry shows what each unit looks like.
+- [ ] ⚪ As a board member, I want to add, edit, and remove buildings, so that the system can support more than one building.
 
 ## 2.2 Billing Service
 
