@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { login } from "./api/auth";
+import { login as requestLogin } from "../api/auth";
+import { useAuth } from "./useAuth";
 import "./LoginPage.css";
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage() {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,8 +14,8 @@ export default function LoginPage({ onLogin }) {
     setError("");
 
     try {
-      const token = await login(email, password);
-      onLogin(token);
+      const token = await requestLogin(email, password);
+      login(token);
     } catch {
       setError("Wrong email or password.");
     }

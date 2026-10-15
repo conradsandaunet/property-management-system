@@ -1,20 +1,15 @@
-import { useEffect, useState } from "react";
-import PageShell from "./PageShell";
+import { useState } from "react";
+import Notice from "../../components/Notice";
+import { useAuth } from "../../auth/useAuth";
 import { describeError } from "./errors";
-import { getMe } from "../../api/auth";
 import { updateMyContact } from "../../api/residents";
 
-export default function ContactPage({ token }) {
-    const [form, setForm] = useState(null);
+export default function ContactPage() {
+    const { token, me, refreshMe } = useAuth();
+    const [form, setForm] = useState({ email: me.email ?? "", phone: me.phone ?? "" });
     const [error, setError] = useState("");
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-        getMe(token)
-            .then((me) => setForm({ email: me.email ?? "", phone: me.phone ?? "" }))
-            .catch((e) => setError(describeError(e, "Couldn't load your details.")));
-    }, [token]);
 
     const update = (field) => (e) => {
         setSaved(false);
@@ -28,6 +23,7 @@ export default function ContactPage({ token }) {
         setSaving(true);
         try {
             await updateMyContact(token, form);
+            await refreshMe();
             setSaved(true);
         } catch (err) {
             setError(describeError(err, "Couldn't save your details.", {
@@ -40,45 +36,25 @@ export default function ContactPage({ token }) {
     }
 
     return (
-        <PageShell eyebrow="Residents" title="Contact details">
-            {!form && !error && <p className="res-muted">Loading...</p>}
-            {!form && error && <p className="res-error">{error}</p>}
+        <form className="form" onSubmit={handleSubmit}>
+            <div className="field">
+                <label className="label" htmlFor="email">Email</label>
+                <input id="email" className="input" type="email" value={form.email}
+                       onChange={update("email")} required />
+            </div>
 
-            {form && (
-                <form onSubmit={handleSubmit}>
-                    <div className="res-field">
-                        <label className="res-label" htmlFor="email">Email</label>
-                        <input
-                            id="email"
-                            className="res-input"
-                            type="email"
-                            value={form.email}
-                            onChange={update("email")}
-                            required
-                        />
-                    </div>
+            <div className="field">
+                <label className="label" htmlFor="phone">Phone</label>
+                <input id="phone" className="input" type="tel" value={form.phone}
+                       onChange={update("phone")} maxLength={20} placeholder="Optional" />
+            </div>
 
-                    <div className="res-field">
-                        <label className="res-label" htmlFor="phone">Phone</label>
-                        <input
-                            id="phone"
-                            className="res-input"
-                            type="tel"
-                            value={form.phone}
-                            onChange={update("phone")}
-                            maxLength={20}
-                            placeholder="Optional"
-                        />
-                    </div>
+            {error && <Notice kind="error">{error}</Notice>}
+            {saved && <Notice kind="success">Saved.</Notice>}
 
-                    {error && <p className="res-error">{error}</p>}
-                    {saved && <p className="res-notice">Saved.</p>}
-
-                    <button className="res-submit" type="submit" disabled={saving}>
-                        {saving ? "Saving…" : "Save changes"}
-                    </button>
-                </form>
-            )}
-        </PageShell>
+            <button className="btn btn--block" type="submit" disabled={saving}>
+                {saving ? "Saving…" : "Save changes"}
+            </button>
+        </form>
     );
 }

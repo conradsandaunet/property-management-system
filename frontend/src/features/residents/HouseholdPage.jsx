@@ -1,36 +1,24 @@
-import { useEffect, useState } from "react";
-import PageShell from "./PageShell";
+import Notice from "../../components/Notice";
+import { useAsync } from "../../hooks/useAsync";
+import { useAuth } from "../../auth/useAuth";
 import { describeError } from "./errors";
 import { getHousehold } from "../../api/residents";
 
-export default function HouseholdPage({ token }) {
-    const [members, setMembers] = useState(null);
-    const [error, setError] = useState("");
+export default function HouseholdPage() {
+    const { token } = useAuth();
+    const { data: members, error, loading } = useAsync(() => getHousehold(token), [token]);
 
-    useEffect(() => {
-        getHousehold(token)
-            .then(setMembers)
-            .catch((e) => setError(describeError(e, "Couldn't load your household.")));
-    }, [token]);
+    if (error) return <Notice kind="error">{describeError(error, "Couldn't load your household.")}</Notice>;
+    if (loading) return <Notice>Loading...</Notice>;
+    if (members.length === 0) return <Notice>No one is registered in your apartment.</Notice>;
 
     return (
-        <PageShell eyebrow="Residents" title="My household">
-            {error && <p className="res-error">{error}</p>}
-            {members === null && !error && <p className="res-muted">Loading...</p>}
-
-            {members && members.length === 0 && (
-                <p className="res-muted">No one is registered in your apartment.</p>
-            )}
-
-            {members && members.length > 0 && (
-                <ul className="res-list">
-                    {members.map((m) => (
-                        <li key={m.id} className="res-item">
-                            <span className="res-item-title">{m.firstName} {m.lastName}</span>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </PageShell>
+        <ul className="list">
+            {members.map((m) => (
+                <li key={m.id} className="list-item">
+                    <span className="list-item__title">{m.firstName} {m.lastName}</span>
+                </li>
+            ))}
+        </ul>
     );
 }
