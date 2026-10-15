@@ -35,6 +35,10 @@ public class Resident {
     @Column(name = "is_manager", nullable = false)
     private boolean manager;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;

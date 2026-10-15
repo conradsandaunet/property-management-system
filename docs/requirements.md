@@ -6,14 +6,14 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 
 ### Resident
 - [x] 🔴 As a resident, I want to log in and see my apartment (number, floor, building name), so that I can confirm my housing information is correct.
-- [ ] 🔴 As a resident, I want to see who is registered in my household, so that I know who is listed on the apartment.
-- [ ] 🔴 As a resident, I want to update my contact information (email, phone), so that the board and maintenance staff can reach me.
-- [ ] 🟡 As a resident, I want to see the status of my apartment (e.g. "Active resident"), so that I know my registration is valid
+- [x] 🔴 As a resident, I want to see who is registered in my household, so that I know who is listed on the apartment.
+- [x] 🔴 As a resident, I want to update my contact information (email, phone), so that the board and maintenance staff can reach me.
+- [x] 🟡 As a resident, I want to see the status of my apartment (e.g. "Active resident"), so that I know my registration is valid
 
 ### Board / Property Manager
-- [ ] 🔴 As a board member, I want to see an overview of the building (number of apartments, occupied, vacant, number of residents), so that I have a full overview of the property.
-- [ ] 🔴 As a board member, I want to add, edit, and remove residents from an apartment, so that the registry is always up to date when people move in/out.
-- [ ] 🟡 As a board member, I want to search for a resident by name or apartment number, so that I can quickly find the right information.
+- [x] 🔴 As a board member, I want to see an overview of the building (number of apartments, occupied, vacant, number of residents), so that I have a full overview of the property.
+- [x] 🔴 As a board member, I want to add, edit, and remove residents from an apartment, so that the registry is always up to date when people move in/out.
+- [x] 🟡 As a board member, I want to search for a resident by name or apartment number, so that I can quickly find the right information.
 
 ## 2.2 Billing Service
 
