@@ -1,6 +1,7 @@
 package org.conrad.maintenanceservice.web;
 
 import jakarta.validation.Valid;
+import org.conrad.maintenanceservice.dto.AssignWorkerRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
@@ -25,20 +26,20 @@ public class MaintenanceController {
     @PostMapping
     public ResponseEntity<MaintenanceResponse> create(@Valid @RequestBody MaintenanceCreateRequest request) {
         MaintenanceRequest created = maintenanceService.create(currentResidentId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(created));
+        return ResponseEntity.status(HttpStatus.CREATED).body(MaintenanceResponse.from(created));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<MaintenanceResponse>> myRequests() {
         List<MaintenanceResponse> responses = maintenanceService.listForResident(currentResidentId())
-                .stream().map(this::toResponse).toList();
+                .stream().map(MaintenanceResponse::from).toList();
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/open")
     public ResponseEntity<List<MaintenanceResponse>> getOpenRequests() {
         List<MaintenanceResponse> responses = maintenanceService.listOpen()
-                .stream().map(this::toResponse).toList();
+                .stream().map(MaintenanceResponse::from).toList();
         return ResponseEntity.ok(responses);
     }
 
@@ -47,21 +48,14 @@ public class MaintenanceController {
         return ResponseEntity.ok(maintenanceService.getById(id, currentResidentId()));
     }
 
+    @PutMapping("{id}/assignment")
+    public ResponseEntity<MaintenanceResponse> assign(@PathVariable Long id, @Valid @RequestBody
+        AssignWorkerRequest request) {
+        return ResponseEntity.ok(MaintenanceResponse.from(maintenanceService.assign(id, request.workerId())));
+    }
+
     private Long currentResidentId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
-
-    private MaintenanceResponse toResponse(MaintenanceRequest r) {
-        return new MaintenanceResponse(
-                r.getId(),
-                r.getResidentId(),
-                r.getCategory(),
-                r.getLocation(),
-                r.getDescription(),
-                r.getPriority(),
-                r.getStatus(),
-                r.getCreatedAt(),
-                r.getUpdatedAt()
-        );
-    }
 }
+
