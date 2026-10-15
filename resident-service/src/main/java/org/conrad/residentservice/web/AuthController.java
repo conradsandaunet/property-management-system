@@ -3,6 +3,7 @@ package org.conrad.residentservice.web;
 import org.conrad.residentservice.dto.LoginRequest;
 import org.conrad.residentservice.dto.LoginResponse;
 import org.conrad.residentservice.dto.MeResponse;
+import org.conrad.residentservice.model.Apartment;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ResidentRepository;
 import org.conrad.security.JwtService;
@@ -39,6 +40,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         Resident resident = residentRepository.findByEmail(request.email())
+                .filter(Resident::isActive)
                 .filter(r -> passwordEncoder.matches(request.password(), r.getPasswordHash()))
                 .orElse(null);
 
@@ -59,12 +61,18 @@ public class AuthController {
         Resident resident = residentRepository.findById(residentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resident not found"));
 
+        Apartment apartment = resident.getApartment();
         return ResponseEntity.ok(new MeResponse(
                 resident.getId(),
                 resident.getFirstName(),
                 resident.getLastName(),
                 resident.getEmail(),
-                resident.isManager()
+                resident.isManager(),
+                resident.isActive(),
+                apartment.getId(),
+                apartment.getApartmentNumber(),
+                apartment.getFloor(),
+                apartment.getBuildingName()
         ));
     }
 }
