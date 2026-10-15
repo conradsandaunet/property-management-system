@@ -7,6 +7,7 @@ import org.conrad.reservationservice.service.ReservationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class ReservationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('BOARD')")
     public ResponseEntity<List<ReservationResponse>> listForResource(@RequestParam Long resourceId) {
         List<ReservationResponse> responses = reservationService.listForResource(resourceId)
                 .stream().map(this::toResponse).toList();
