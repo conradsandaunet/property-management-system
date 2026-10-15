@@ -19,6 +19,8 @@ export default defineConfig({
       '/api/apartments': target(8081),
       '/api/invoices': target(8082),
       '/api/maintenance': target(8083),
+      '/api/reservations': target(8084),
+      '/api/resources': target(8084),
     }
   }
 })

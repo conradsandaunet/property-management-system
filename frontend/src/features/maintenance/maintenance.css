@@ -1,8 +1,5 @@
 .maint-shell {
-    min-height: 100svh;
     display: flex;
-    align-items: center;
-    padding: 8vh 8vw;
 }
 
 .maint-panel {

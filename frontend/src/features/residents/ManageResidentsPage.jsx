@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import PageShell from "./PageShell";
+import Badge from "../../components/Badge";
+import Notice from "../../components/Notice";
+import PageHeader from "../../components/PageHeader";
 import ResidentForm from "./ResidentForm";
 import { describeError } from "./errors";
-import { getMe } from "../../api/auth";
+import { useAuth } from "../../auth/useAuth";
 import {
     createResident,
     getApartments,
@@ -11,8 +13,9 @@ import {
     updateResident,
 } from "../../api/residents";
 
-export default function ManageResidentsPage({ token }) {
-    const [meId, setMeId] = useState(null);
+export default function ManageResidentsPage() {
+    const { token, me, refreshMe } = useAuth();
+    const meId = me.id;
     const [apartments, setApartments] = useState([]);
     const [query, setQuery] = useState("");
     const [includeInactive, setIncludeInactive] = useState(false);
@@ -24,7 +27,6 @@ export default function ManageResidentsPage({ token }) {
     const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
-        getMe(token).then((me) => setMeId(me.id)).catch(() => {});
         getApartments(token)
             .then(setApartments)
             .catch((e) => setError(describeError(e, "Couldn't load apartments.")));
@@ -62,6 +64,7 @@ export default function ManageResidentsPage({ token }) {
         await updateResident(token, id, values);
         setEditingId(null);
         reload();
+        if (id === meId) refreshMe();
     }
 
     async function handleRemove(id) {
@@ -86,20 +89,22 @@ export default function ManageResidentsPage({ token }) {
     }
 
     return (
-        <PageShell eyebrow="Board" title="Manage residents" wide>
-            <div className="res-toolbar">
-                <div className="res-field">
-                    <label className="res-label" htmlFor="search">Search</label>
+        <>
+            <PageHeader eyebrow="Board" title="Manage residents" />
+
+            <div className="toolbar">
+                <div className="field">
+                    <label className="label" htmlFor="search">Search</label>
                     <input
                         id="search"
-                        className="res-input"
+                        className="input"
                         type="search"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Name or apartment number"
                     />
                 </div>
-                <label className="res-check">
+                <label className="check">
                     <input
                         type="checkbox"
                         checked={includeInactive}
@@ -109,34 +114,32 @@ export default function ManageResidentsPage({ token }) {
                 </label>
             </div>
 
-            {adding ? (
-                <div className="res-add">
+            <div className="section-gap">
+                {adding ? (
                     <ResidentForm
                         mode="create"
                         apartments={apartments}
                         onSubmit={handleCreate}
                         onCancel={() => setAdding(false)}
                     />
-                </div>
-            ) : (
-                <div className="res-add">
-                    <button className="res-submit res-submit--inline" type="button"
+                ) : (
+                    <button className="btn" type="button"
                             onClick={() => { setAdding(true); setEditingId(null); }}>
                         Add resident
                     </button>
-                </div>
-            )}
+                )}
+            </div>
 
-            {error && <p className="res-error">{error}</p>}
-            {residents === null && !error && <p className="res-muted">Loading...</p>}
-            {residents && residents.length === 0 && <p className="res-muted">No residents found.</p>}
+            {error && <Notice kind="error">{error}</Notice>}
+            {residents === null && !error && <Notice>Loading...</Notice>}
+            {residents && residents.length === 0 && <Notice>No residents found.</Notice>}
 
             {residents && residents.length > 0 && (
-                <ul className="res-list">
+                <ul className="list list--wide">
                     {residents.map((r) => {
                         const isSelf = r.id === meId;
                         return (
-                            <li key={r.id} className="res-item">
+                            <li key={r.id} className="list-item">
                                 {editingId === r.id ? (
                                     <ResidentForm
                                         mode="edit"
@@ -148,44 +151,44 @@ export default function ManageResidentsPage({ token }) {
                                     />
                                 ) : (
                                     <>
-                                        <div className="res-item-top">
-                                            <span className="res-item-title">
+                                        <div className="list-item__top">
+                                            <span className="list-item__title">
                                                 {r.firstName} {r.lastName}
-                                                {isSelf && <span className="res-self"> (you)</span>}
+                                                {isSelf && <span className="list-item__sub"> (you)</span>}
                                             </span>
-                                            <span className="res-badges">
-                                                {r.manager && <span className="res-badge res-badge--board">Board</span>}
-                                                <span className={`res-badge res-badge--${r.active ? "active" : "removed"}`}>
+                                            <span className="badges">
+                                                {r.manager && <Badge variant="info">Board</Badge>}
+                                                <Badge variant={r.active ? "success" : undefined}>
                                                     {r.active ? "Active" : "Removed"}
-                                                </span>
+                                                </Badge>
                                             </span>
                                         </div>
-                                        <div className="res-item-meta">
+                                        <div className="list-item__meta">
                                             <span>{r.email}</span>
                                             {r.phone && <span>{r.phone}</span>}
                                             <span>Apartment {r.apartmentNumber}</span>
                                         </div>
-                                        <div className="res-actions">
+                                        <div className="list-item__actions">
                                             {r.active ? (
                                                 <>
-                                                    <button className="res-link-btn" type="button"
+                                                    <button className="btn-link" type="button"
                                                             onClick={() => { setEditingId(r.id); setAdding(false); setConfirmingId(null); }}>
                                                         Edit
                                                     </button>
                                                     {!isSelf && confirmingId !== r.id && (
-                                                        <button className="res-link-btn res-link-btn--danger" type="button"
+                                                        <button className="btn-link btn-link--danger" type="button"
                                                                 onClick={() => setConfirmingId(r.id)}>
                                                             Remove
                                                         </button>
                                                     )}
                                                     {confirmingId === r.id && (
-                                                        <span className="res-confirm">
+                                                        <span className="list-item__confirm">
                                                             Remove {r.firstName}?
-                                                            <button className="res-link-btn res-link-btn--danger" type="button"
+                                                            <button className="btn-link btn-link--danger" type="button"
                                                                     onClick={() => handleRemove(r.id)}>
                                                                 Yes, remove
                                                             </button>
-                                                            <button className="res-link-btn" type="button"
+                                                            <button className="btn-link" type="button"
                                                                     onClick={() => setConfirmingId(null)}>
                                                                 Cancel
                                                             </button>
@@ -193,7 +196,7 @@ export default function ManageResidentsPage({ token }) {
                                                     )}
                                                 </>
                                             ) : (
-                                                <button className="res-link-btn" type="button"
+                                                <button className="btn-link" type="button"
                                                         onClick={() => handleReactivate(r.id)}>
                                                     Reactivate
                                                 </button>
@@ -206,6 +209,6 @@ export default function ManageResidentsPage({ token }) {
                     })}
                 </ul>
             )}
-        </PageShell>
+        </>
     );
 }

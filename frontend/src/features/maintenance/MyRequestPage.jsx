@@ -44,8 +44,6 @@ export default function MyRequestPage({ token }) {
     return (
         <div className="maint-shell">
             <div className="maint-panel maint-panel--wide">
-                <Link className="main-back" to="/">← Back</Link>
-
                 <div className="maint-eyebrow">
                     <span className="maint-eyebrow-mark"/>
                     <span className="maint-eyebrow-text">Maintenance</span>

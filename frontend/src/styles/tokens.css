@@ -9,52 +9,24 @@
   --border: #e3e6ea;
   --error: #b3261e;
 
+  --success: #1c6b36;
+  --success-pale: #e3f4e8;
+  --warning: #8a5a00;
+  --warning-pale: #fff4dc;
+  --neutral-pale: #f1f2f4;
+
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --serif: ui-serif, Georgia, "Times New Roman", serif;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --w-form: 480px;
+  --w-page: 720px;
+  --w-wide: 960px;
 
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-#root {
-  min-height: 100svh;
-}
-
-h1,
-h2 {
-  font-family: var(--serif);
-  font-weight: 400;
-  color: var(--ink);
-  margin: 0;
-}
-
-button {
-  font-family: inherit;
-}
-
-input {
-  font-family: inherit;
 }

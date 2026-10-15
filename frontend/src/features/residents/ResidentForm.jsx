@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Notice from "../../components/Notice";
 import { describeError } from "./errors";
 
 export default function ResidentForm({ mode, initial, apartments, isSelf = false, onSubmit, onCancel }) {
@@ -48,44 +49,44 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
     const idPrefix = creating ? "new" : `edit-${initial.id}`;
 
     return (
-        <form className="res-form-card" onSubmit={handleSubmit}>
-            <div className="res-fields-2">
-                <div className="res-field">
-                    <label className="res-label" htmlFor={`${idPrefix}-first`}>First name</label>
-                    <input id={`${idPrefix}-first`} className="res-input" value={form.firstName}
+        <form className="form-card" onSubmit={handleSubmit}>
+            <div className="field-row">
+                <div className="field">
+                    <label className="label" htmlFor={`${idPrefix}-first`}>First name</label>
+                    <input id={`${idPrefix}-first`} className="input" value={form.firstName}
                            onChange={update("firstName")} maxLength={100} required />
                 </div>
-                <div className="res-field">
-                    <label className="res-label" htmlFor={`${idPrefix}-last`}>Last name</label>
-                    <input id={`${idPrefix}-last`} className="res-input" value={form.lastName}
+                <div className="field">
+                    <label className="label" htmlFor={`${idPrefix}-last`}>Last name</label>
+                    <input id={`${idPrefix}-last`} className="input" value={form.lastName}
                            onChange={update("lastName")} maxLength={100} required />
                 </div>
             </div>
 
-            <div className="res-field">
-                <label className="res-label" htmlFor={`${idPrefix}-email`}>Email</label>
-                <input id={`${idPrefix}-email`} className="res-input" type="email" value={form.email}
+            <div className="field">
+                <label className="label" htmlFor={`${idPrefix}-email`}>Email</label>
+                <input id={`${idPrefix}-email`} className="input" type="email" value={form.email}
                        onChange={update("email")} required />
             </div>
 
-            <div className="res-field">
-                <label className="res-label" htmlFor={`${idPrefix}-phone`}>Phone</label>
-                <input id={`${idPrefix}-phone`} className="res-input" type="tel" value={form.phone}
+            <div className="field">
+                <label className="label" htmlFor={`${idPrefix}-phone`}>Phone</label>
+                <input id={`${idPrefix}-phone`} className="input" type="tel" value={form.phone}
                        onChange={update("phone")} maxLength={20} placeholder="Optional" />
             </div>
 
             {creating && (
-                <div className="res-field">
-                    <label className="res-label" htmlFor={`${idPrefix}-password`}>Initial password</label>
-                    <input id={`${idPrefix}-password`} className="res-input" type="password" value={form.password}
+                <div className="field">
+                    <label className="label" htmlFor={`${idPrefix}-password`}>Initial password</label>
+                    <input id={`${idPrefix}-password`} className="input" type="password" value={form.password}
                            onChange={update("password")} minLength={6} required />
-                    <p className="res-hint">The resident uses this to log in. Share it with them directly.</p>
+                    <p className="hint">The resident uses this to log in. Share it with them directly.</p>
                 </div>
             )}
 
-            <div className="res-field">
-                <label className="res-label" htmlFor={`${idPrefix}-apartment`}>Apartment</label>
-                <select id={`${idPrefix}-apartment`} className="res-input" value={form.apartmentId}
+            <div className="field">
+                <label className="label" htmlFor={`${idPrefix}-apartment`}>Apartment</label>
+                <select id={`${idPrefix}-apartment`} className="input" value={form.apartmentId}
                         onChange={update("apartmentId")} required>
                     {!form.apartmentId && apartments.length > 0 && (
                         <option value="" disabled>Select an apartment</option>
@@ -98,8 +99,8 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                 </select>
             </div>
 
-            <div className="res-field">
-                <label className={`res-check${isSelf ? " res-check--disabled" : ""}`}>
+            <div className="field">
+                <label className={`check${isSelf ? " is-disabled" : ""}`}>
                     <input
                         type="checkbox"
                         checked={form.manager}
@@ -108,16 +109,16 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                     />
                     Board member
                 </label>
-                {isSelf && <p className="res-hint">You can't remove your own board access.</p>}
+                {isSelf && <p className="hint">You can't remove your own board access.</p>}
             </div>
 
-            {error && <p className="res-error">{error}</p>}
+            {error && <Notice kind="error">{error}</Notice>}
 
-            <div className="res-form-actions">
-                <button className="res-submit res-submit--inline" type="submit" disabled={submitting}>
+            <div className="form-actions">
+                <button className="btn" type="submit" disabled={submitting}>
                     {submitting ? "Saving…" : creating ? "Add resident" : "Save changes"}
                 </button>
-                <button className="res-link-btn" type="button" onClick={onCancel}>Cancel</button>
+                <button className="btn-link" type="button" onClick={onCancel}>Cancel</button>
             </div>
         </form>
     );
