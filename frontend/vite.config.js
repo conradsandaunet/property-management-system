@@ -21,6 +21,7 @@ export default defineConfig({
       '/api/maintenance': target(8083),
       '/api/reservations': target(8084),
       '/api/resources': target(8084),
+      '/api/workers': target(8083),
     }
   }
 })

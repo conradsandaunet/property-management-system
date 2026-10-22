@@ -8,5 +8,6 @@ export const NAV_ITEMS = {
         { label: "Home", to: "/", end: true },
         { label: "Overview", to: "/board/overview" },
         { label: "Residents", to: "/board/residents" },
+        { label: "Maintenance", to: "/board/maintenance"}
     ],
 };
