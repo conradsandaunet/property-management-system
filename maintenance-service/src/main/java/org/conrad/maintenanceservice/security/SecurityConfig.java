@@ -27,6 +27,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/maintenance").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/my").hasRole("RESIDENT")
+                        .requestMatchers(HttpMethod.GET, "/maintenance/open").hasRole("BOARD")
                         .requestMatchers(HttpMethod.GET, "/maintenance/{id}").hasRole("RESIDENT")
                         .requestMatchers("/maintenance/**").hasRole("BOARD")
                         .requestMatchers("/workers/**").hasRole("BOARD")

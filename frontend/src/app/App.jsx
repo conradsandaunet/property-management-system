@@ -11,6 +11,7 @@ import OverviewPage from "../features/residents/OverviewPage";
 import ManageResidentsPage from "../features/residents/ManageResidentsPage";
 import MyRequestPage from "../features/maintenance/MyRequestPage";
 import NewRequestPage from "../features/maintenance/NewRequestPage";
+import OpenRequestPage from "../features/maintenance/OpenRequestPage.jsx";
 
 export default function App() {
     const { token } = useAuth();
@@ -35,7 +36,7 @@ export default function App() {
                     <Route element={<RequireRole roles={["BOARD"]} />}>
                         <Route path="board/overview" element={<OverviewPage />} />
                         <Route path="board/residents" element={<ManageResidentsPage />} />
-                    </Route>
+                        <Route path="board/maintenance" element={<OpenRequestPage />} />                    </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
