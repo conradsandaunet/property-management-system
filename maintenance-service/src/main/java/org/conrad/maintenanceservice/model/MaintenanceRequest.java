@@ -42,6 +42,10 @@ public class MaintenanceRequest {
     @Column(nullable = false)
     private MaintenanceStatus status = MaintenanceStatus.SUBMITTED;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_worker_id")
+    private MaintenanceWorker assignedWorker;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

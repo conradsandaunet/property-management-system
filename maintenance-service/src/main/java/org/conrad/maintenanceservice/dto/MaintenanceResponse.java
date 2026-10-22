@@ -1,9 +1,6 @@
 package org.conrad.maintenanceservice.dto;
 
-import org.conrad.maintenanceservice.model.MaintenanceCategory;
-import org.conrad.maintenanceservice.model.MaintenancePriority;
-import org.conrad.maintenanceservice.model.MaintenanceRequest;
-import org.conrad.maintenanceservice.model.MaintenanceStatus;
+import org.conrad.maintenanceservice.model.*;
 
 import java.time.LocalDateTime;
 
@@ -15,10 +12,13 @@ public record MaintenanceResponse(
         String description,
         MaintenancePriority priority,
         MaintenanceStatus status,
+        Long assignedWorkerId,
+        String assignedWorkerName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public static MaintenanceResponse from(MaintenanceRequest r) {
+        MaintenanceWorker w = r.getAssignedWorker();
         return new MaintenanceResponse(
                 r.getId(),
                 r.getResidentId(),
@@ -27,6 +27,8 @@ public record MaintenanceResponse(
                 r.getDescription(),
                 r.getPriority(),
                 r.getStatus(),
+                w != null ? w.getId() : null,
+                w != null ? w.getName() : null,
                 r.getCreatedAt(),
                 r.getUpdatedAt()
         );

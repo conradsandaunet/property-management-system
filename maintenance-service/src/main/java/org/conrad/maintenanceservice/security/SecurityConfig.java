@@ -29,6 +29,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/maintenance/my").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/{id}").hasRole("RESIDENT")
                         .requestMatchers("/maintenance/**").hasRole("BOARD")
+                        .requestMatchers("/workers/**").hasRole("BOARD")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
