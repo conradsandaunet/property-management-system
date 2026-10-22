@@ -39,8 +39,8 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [ ] 🟡 As a resident, I want to add a comment to an open request, so that I can provide more information as it comes up.
 
 ### Board / Property Manager
-- [ ] 🔴 As a board member, I want to see all open maintenance requests in the building with priority (🔴🟡🟢), so that I can quickly see what's most urgent.
-- [ ] 🔴 As a board member, I want to assign a request to a maintenance worker, so that responsibility is clearly placed.
+- [x] 🔴 As a board member, I want to see all open maintenance requests in the building with priority (🔴🟡🟢), so that I can quickly see what's most urgent.
+- [x] 🔴 As a board member, I want to assign a request to a maintenance worker, so that responsibility is clearly placed.
 - [ ] 🟡 As a board member, I want to manually change the priority or status of a request, so that I can override it when needed.
 
 ### Maintenance Staff
