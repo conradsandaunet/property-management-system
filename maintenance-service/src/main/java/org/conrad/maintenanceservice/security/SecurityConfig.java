@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/maintenance").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/my").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/open").hasRole("BOARD")

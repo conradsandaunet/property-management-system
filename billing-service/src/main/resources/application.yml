@@ -28,3 +28,9 @@ app:
 
 resident-service:
   base-url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

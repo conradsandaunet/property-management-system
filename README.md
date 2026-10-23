@@ -13,6 +13,31 @@ A microservices-based property management system handling residents, billing, ma
 | Maintenance Service | Maintenance requests and work orders |
 | Reservation Service | Booking of shared resources |
 
+## Gateway
+
+The browser (and the Vite dev server) only talks to the **gateway** on port
+8080. It routes `/api/**` to the services (stripping the `/api` prefix),
+handles CORS, and rejects requests without a valid JWT with `401`. Services
+still validate the token themselves and enforce roles.
+
+```
+browser -> gateway :8080 -> resident :8081 | billing :8082 | maintenance :8083 | reservation :8084
+```
+
+| Path | Service |
+|---|---|
+| `/api/auth`, `/api/residents`, `/api/apartments` | resident-service |
+| `/api/invoices` | billing-service |
+| `/api/maintenance`, `/api/workers` | maintenance-service |
+| `/api/reservations`, `/api/resources` | reservation-service |
+
+Setup: copy `gateway/.env.example` to `gateway/.env` (all values are required;
+there are no defaults). `JWT_SECRET` must be identical in every service and the
+gateway. Run it with `mvn -pl gateway spring-boot:run` after the services are
+up, then `npm run dev` in `frontend/` (optionally copy `frontend/.env.example`
+to `frontend/.env`; it defaults to `http://localhost:8080`). The services are
+still reachable directly on 8081-8084 until Docker is in place.
+
 ## First-time setup
 
 `resident-service`, `billing-service`, and `reservation-service` all share

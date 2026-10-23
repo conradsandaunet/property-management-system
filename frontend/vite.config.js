@@ -1,27 +1,20 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-
-const strip = (path) => path.replace(/^\/api/, '')
-
-const target = (port) => ({
-  target: `http://localhost:${port}`,
-  changeOrigin: true,
-  rewrite: strip,
-})
+import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api/auth': target(8081),
-      '/api/residents': target(8081),
-      '/api/apartments': target(8081),
-      '/api/invoices': target(8082),
-      '/api/maintenance': target(8083),
-      '/api/reservations': target(8084),
-      '/api/resources': target(8084),
-      '/api/workers': target(8083),
-    }
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [react()],
+    server: {
+      proxy: {
+        // The gateway owns routing, CORS and JWT validation; it strips the /api prefix.
+        '/api': {
+          target: env.GATEWAY_URL || 'http://localhost:8080', // dev-only fallback
+          changeOrigin: true,
+        },
+      },
+    },
   }
 })

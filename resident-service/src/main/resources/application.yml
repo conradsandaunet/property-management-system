@@ -28,3 +28,9 @@ app:
     expiration-minutes: 60
   seed:
     board-password: ${BOARD_SEED_PASSWORD}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
