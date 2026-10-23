@@ -6,9 +6,9 @@ spring:
     name: maintenance-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/maintenance
-    username: maintenance
-    password: maintenance
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:

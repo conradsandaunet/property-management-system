@@ -6,9 +6,9 @@ spring:
     name: billing-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/billing
-    username: billing
-    password: billing
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -27,7 +27,7 @@ app:
     secret: ${JWT_SECRET}
 
 resident-service:
-  base-url: http://localhost:8081
+  base-url: ${RESIDENT_SERVICE_URL}
 
 management:
   endpoints:

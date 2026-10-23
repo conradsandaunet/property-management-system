@@ -38,6 +38,38 @@ up, then `npm run dev` in `frontend/` (optionally copy `frontend/.env.example`
 to `frontend/.env`; it defaults to `http://localhost:8080`). The services are
 still reachable directly on 8081-8084 until Docker is in place.
 
+## Running with Docker
+
+Everything (databases, four services, gateway and frontend) starts with one command:
+
+```bash
+cp .env.example .env     # then set JWT_SECRET and BOARD_SEED_PASSWORD
+docker compose up --build
+```
+
+Open http://localhost:3000 (change with `FRONTEND_PORT` in `.env`).
+
+- Only the frontend (nginx) is published. It serves the React app and proxies `/api`
+  to the gateway; the gateway and the services are reachable inside the compose
+  network only, so nothing can bypass the JWT check.
+- The databases still publish 5432-5435 so you can use IntelliJ's database panel
+  or run one service from the IDE against the containerised databases.
+- Service containers start in dependency order using `/actuator/health`
+  (service waits for its database; billing also waits for resident; the gateway
+  waits for all four; the frontend waits for the gateway).
+- Database credentials are the local dev ones in `docker-compose.yml`; secrets
+  (`JWT_SECRET`, `BOARD_SEED_PASSWORD`) come from the root `.env`, which is gitignored.
+
+Only the databases (for developing in the IDE):
+
+```bash
+docker compose up -d resident-db billing-db maintenance-db reservation-db
+```
+
+Every service reads its database settings from the environment: `DB_URL`,
+`DB_USER`, `DB_PASSWORD` (billing also needs `RESIDENT_SERVICE_URL`). For IDE runs
+these are in each module's `.env` (see its `.env.example`).
+
 ## First-time setup
 
 `resident-service`, `billing-service`, and `reservation-service` all share
