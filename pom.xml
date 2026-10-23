@@ -13,6 +13,7 @@
 
     <modules>
         <module>security-common</module>
+        <module>gateway</module>
         <module>resident-service</module>
         <module>billing-service</module>
         <module>maintenance-service</module>
