@@ -16,15 +16,22 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final int loginAttempts;
+    private final long loginPeriodSeconds;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          @Value("${app.rate-limit.login.attempts}") int loginAttempts,
+                          @Value("${app.rate-limit.login.period-seconds}") long loginPeriodSeconds) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.loginAttempts = loginAttempts;
+        this.loginPeriodSeconds = loginPeriodSeconds;
     }
 
     @Bean
@@ -40,6 +47,9 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
+                // Not a @Component on purpose: Boot would also register it as a plain servlet filter.
+                .addFilterBefore(new LoginRateLimitFilter(loginAttempts, Duration.ofSeconds(loginPeriodSeconds)),
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
