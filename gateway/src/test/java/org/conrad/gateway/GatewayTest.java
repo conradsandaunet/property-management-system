@@ -202,6 +202,14 @@ class GatewayTest {
         assertThat(seen).isEmpty();
     }
 
+    @Test
+    void healthEndpointIsOpenAndNotRouted() throws Exception {
+        HttpResponse<String> response = send("GET", "/actuator/health", null, null);
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("UP");
+        assertThat(seen).isEmpty();
+    }
+
     // ---- CORS ----
 
     @Test
