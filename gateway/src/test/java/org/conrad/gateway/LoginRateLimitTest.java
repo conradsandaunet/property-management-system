@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LoginRateLimitTest {
 
     @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {.
+    static void properties(DynamicPropertyRegistry registry) {
         registry.add("RESIDENT_URL", () -> "http://127.0.0.1:1");
         registry.add("BILLING_URL", () -> "http://127.0.0.1:1");
         registry.add("MAINTENANCE_URL", () -> "http://127.0.0.1:1");
