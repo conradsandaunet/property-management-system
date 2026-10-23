@@ -6,9 +6,9 @@ spring:
     name: reservation-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/reservation
-    username: reservation
-    password: reservation
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:

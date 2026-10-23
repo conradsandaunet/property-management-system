@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LoginRateLimitTest {
 
     @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {.
+    static void properties(DynamicPropertyRegistry registry) {
         registry.add("RESIDENT_URL", () -> "http://127.0.0.1:1");
         registry.add("BILLING_URL", () -> "http://127.0.0.1:1");
         registry.add("MAINTENANCE_URL", () -> "http://127.0.0.1:1");
@@ -35,10 +35,16 @@ class LoginRateLimitTest {
     private final HttpClient client = HttpClient.newHttpClient();
 
     private HttpResponse<String> send(String method, String path, String origin) throws Exception {
+        return send(method, path, origin, null);
+    }
+
+    private HttpResponse<String> send(String method, String path, String origin, String forwardedFor)
+            throws Exception {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
                 .method(method, HttpRequest.BodyPublishers.ofString("{}"))
                 .header("Content-Type", "application/json");
         if (origin != null) b.header("Origin", origin);
+        if (forwardedFor != null) b.header("X-Forwarded-For", forwardedFor);
         return client.send(b.build(), HttpResponse.BodyHandlers.ofString());
     }
 
@@ -55,5 +61,15 @@ class LoginRateLimitTest {
 
         assertThat(send("GET", "/api/residents/household", null).statusCode()).isEqualTo(401);
         assertThat(send("OPTIONS", "/api/auth/login", "http://localhost:5173").statusCode()).isNotEqualTo(429);
+    }
+
+    @Test
+    void countsAttemptsPerForwardedClientAddressBehindProxy() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            assertThat(send("POST", "/api/auth/login", null, "203.0.113.7").statusCode()).isNotEqualTo(429);
+        }
+        assertThat(send("POST", "/api/auth/login", null, "203.0.113.7").statusCode()).isEqualTo(429);
+        // A different client behind the same proxy still has its own quota.
+        assertThat(send("POST", "/api/auth/login", null, "203.0.113.8").statusCode()).isNotEqualTo(429);
     }
 }
