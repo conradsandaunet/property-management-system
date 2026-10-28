@@ -143,3 +143,4 @@ curl -s -X POST http://localhost:8081/auth/login \
 TOKEN="<paste the token value here>"
 curl -s http://localhost:8082/invoices/current -H "Authorization: Bearer $TOKEN"
 ```
+test
