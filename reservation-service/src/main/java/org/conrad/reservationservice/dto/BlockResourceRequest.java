@@ -1,4 +1,9 @@
 package org.conrad.reservationservice.dto;
 
-public record BlockResourceRequest() {
+import java.time.LocalDateTime;
+
+public record BlockResourceRequest(
+        LocalDateTime from,
+        LocalDateTime to
+) {
 }
