@@ -1,5 +1,6 @@
 package org.conrad.reservationservice.web;
 
+import org.conrad.reservationservice.dto.BlockResourceRequest;
 import org.conrad.reservationservice.dto.ResourceResponse;
 import org.conrad.reservationservice.dto.SlotResponse;
 import org.conrad.reservationservice.model.Resource;
@@ -31,7 +32,9 @@ public class ResourceController {
                 resource.getId(),
                 resource.getName(),
                 resource.getType(),
-                resource.getStatus()
+                resource.getStatus(),
+                resource.getMaintenanceFrom(),
+                resource.getMaintenanceTo()
         );
     }
 
@@ -56,6 +59,21 @@ public class ResourceController {
             @PathVariable Long id,
             @RequestParam ResourceStatus status) {
         Resource updated = resourceService.setStatus(id, status);
+        return ResponseEntity.ok(toResponse(updated));
+    }
+
+    /** Block the resource for a period, e.g. {"from": "2026-11-20T08:00", "to": "2026-11-25T22:00"}. */
+    @PostMapping("/{id}/block")
+    @PreAuthorize("hasRole('BOARD')")
+    public ResponseEntity<ResourceResponse> block(@PathVariable Long id, @RequestBody BlockResourceRequest request) {
+        Resource updated = resourceService.block(id, request.from(), request.to());
+        return ResponseEntity.ok(toResponse(updated));
+    }
+
+    @DeleteMapping("/{id}/block")
+    @PreAuthorize("hasRole('BOARD')")
+    public ResponseEntity<ResourceResponse> unblock(@PathVariable Long id) {
+        Resource updated = resourceService.unblock(id);
         return ResponseEntity.ok(toResponse(updated));
     }
 

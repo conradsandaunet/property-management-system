@@ -4,7 +4,6 @@ import org.conrad.reservationservice.dto.SlotResponse;
 import org.conrad.reservationservice.model.Reservation;
 import org.conrad.reservationservice.model.ReservationStatus;
 import org.conrad.reservationservice.model.Resource;
-import org.conrad.reservationservice.model.ResourceStatus;
 import org.conrad.reservationservice.repository.ReservationRepository;
 import org.conrad.reservationservice.repository.ResourceRepository;
 import org.springframework.http.HttpStatus;
@@ -40,8 +39,8 @@ public class ReservationService {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
 
-        if (resource.getStatus() == ResourceStatus.MAINTENANCE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Resource is under maintenance and cannot be booked");
+        if (resource.isBlockedDuring(start, end)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Resource is blocked for maintenance in this period");
         }
 
         boolean overlaps = reservationRepository.existsOverlapping(resourceId, start, end);
@@ -89,7 +88,6 @@ public class ReservationService {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
 
-        boolean underMaintenance = resource.getStatus() == ResourceStatus.MAINTENANCE;
         List<Reservation> booked = reservationRepository.findByResourceIdAndStatus(resourceId, ReservationStatus.ACTIVE);
 
         List<SlotResponse> slots = new ArrayList<>();
@@ -101,7 +99,9 @@ public class ReservationService {
                     r.getStartTime().isBefore(slotEnd) && r.getEndTime().isAfter(slotStart));
             boolean inPast = slotStart.isBefore(LocalDateTime.now());
 
-            slots.add(new SlotResponse(slotStart, slotEnd, !underMaintenance && !taken && !inPast));
+            boolean blocked = resource.isBlockedDuring(slotStart, slotEnd);
+
+            slots.add(new SlotResponse(slotStart, slotEnd, !blocked && !taken && !inPast));
         }
         return slots;
     }
