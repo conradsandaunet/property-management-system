@@ -25,3 +25,12 @@ export const updateResident = (token, id, data) =>
 
 export const removeResident = (token, id) =>
     request(`/residents/${id}`, { token, method: "DELETE" });
+
+export const createApartment = (token, data) =>
+    request("/apartments", { token, method: "POST", body: data });
+
+export const updateApartment = (token, id, data) =>
+    request(`/apartments/${id}`, { token, method: "PATCH", body: data });
+
+export const removeApartment = (token, id) =>
+    request(`/apartments/${id}`, { token, method: "DELETE" });
