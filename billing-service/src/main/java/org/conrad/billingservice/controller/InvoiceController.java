@@ -16,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.YearMonth;
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 @RestController
 @RequestMapping("/invoices")
 public class InvoiceController {
@@ -49,6 +52,18 @@ public class InvoiceController {
     @GetMapping("/{id}")
     public InvoiceResponse one(@PathVariable Long id, Authentication authentication) {
         return invoiceService.getInvoiceById(id, CurrentUser.apartmentId(authentication));
+    }
+
+    /** The invoice as a printable PDF, including the resident's name. */
+    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> pdf(@PathVariable Long id,
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+                                      Authentication authentication) {
+        byte[] pdf = invoiceService.getInvoicePdf(id, CurrentUser.apartmentId(authentication), authorization);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"faktura-" + id + ".pdf\"")
+                .body(pdf);
     }
 
     @PostMapping("/{id}/pay")
