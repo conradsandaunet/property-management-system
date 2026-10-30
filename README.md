@@ -43,7 +43,7 @@ still reachable directly on 8081-8084 until Docker is in place.
 Everything (databases, four services, gateway and frontend) starts with one command:
 
 ```bash
-cp .env.example .env     # then set JWT_SECRET and BOARD_SEED_PASSWORD
+cp .env.example .env     # then set JWT_SECRET, BOARD_SEED_PASSWORD and WORKER_SEED_PASSWORD
 docker compose up --build
 ```
 
@@ -58,7 +58,7 @@ Open http://localhost:3000 (change with `FRONTEND_PORT` in `.env`).
   (service waits for its database; billing also waits for resident; the gateway
   waits for all four; the frontend waits for the gateway).
 - Database credentials are the local dev ones in `docker-compose.yml`; secrets
-  (`JWT_SECRET`, `BOARD_SEED_PASSWORD`) come from the root `.env`, which is gitignored.
+  (`JWT_SECRET`, `BOARD_SEED_PASSWORD`, `WORKER_SEED_PASSWORD`) come from the root `.env`, which is gitignored.
 
 Only the databases (for developing in the IDE):
 
