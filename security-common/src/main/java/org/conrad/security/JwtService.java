@@ -14,6 +14,9 @@ import java.util.Date;
 @Service
 public class JwtService {
 
+    public static final String WORKER_SUBJECT_PREFIX = "worker:";
+    public static final String WORKER_ROLE = "WORKER";
+
     private final SecretKey key;
     private final long expirationMinutes;
 
@@ -26,6 +29,20 @@ public class JwtService {
     }
     public String issueToken(String subject, String email, boolean manager) {
         return issueToken(subject, email, manager, null);
+    }
+
+    // Worker tokens use a non-numeric subject so they can never be mistaken for a resident id.
+    public String issueWorkerToken(Long workerId, String email) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(WORKER_SUBJECT_PREFIX + workerId)
+                .claim("email", email)
+                .claim("manager", false)
+                .claim("role", WORKER_ROLE)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)))
+                .signWith(key)
+                .compact();
     }
 
     public String issueToken(String subject, String email, boolean manager, Long apartmentId) {

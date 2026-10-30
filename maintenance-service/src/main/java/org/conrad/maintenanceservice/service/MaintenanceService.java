@@ -1,6 +1,5 @@
 package org.conrad.maintenanceservice.service;
 
-import com.sun.tools.javac.Main;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
@@ -55,6 +54,15 @@ public class MaintenanceService {
     @Transactional(readOnly = false)
     public List<MaintenanceRequest> listOpen() {
         return repository.findByStatusNotOrderByCreatedAtAsc(MaintenanceStatus.RESOLVED)
+                .stream()
+                .sorted(Comparator.comparing(MaintenanceRequest::getPriority).reversed()
+                        .thenComparing(MaintenanceRequest::getCreatedAt))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MaintenanceRequest> listAssignedTo(Long workerId) {
+        return repository.findByAssignedWorkerIdAndStatusNot(workerId, MaintenanceStatus.RESOLVED)
                 .stream()
                 .sorted(Comparator.comparing(MaintenanceRequest::getPriority).reversed()
                         .thenComparing(MaintenanceRequest::getCreatedAt))

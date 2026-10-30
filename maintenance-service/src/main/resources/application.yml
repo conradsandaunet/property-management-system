@@ -25,6 +25,9 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
+    expiration-minutes: 60
+  seed:
+    worker-password: ${WORKER_SEED_PASSWORD}
 
 management:
   endpoints:

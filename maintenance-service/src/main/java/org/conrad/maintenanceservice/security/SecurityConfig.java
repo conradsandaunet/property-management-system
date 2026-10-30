@@ -7,6 +7,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -25,9 +27,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/workers/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/maintenance").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/my").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/open").hasRole("BOARD")
+                        .requestMatchers(HttpMethod.GET, "/maintenance/assigned").hasRole("WORKER")
                         .requestMatchers(HttpMethod.GET, "/maintenance/{id}").hasRole("RESIDENT")
                         .requestMatchers("/maintenance/**").hasRole("BOARD")
                         .requestMatchers("/workers/**").hasRole("BOARD")
@@ -36,5 +40,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

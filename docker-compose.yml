@@ -130,6 +130,7 @@ services:
       DB_URL: jdbc:postgresql://maintenance-db:5432/maintenance
       DB_USER: maintenance
       DB_PASSWORD: maintenance
+      WORKER_SEED_PASSWORD: ${WORKER_SEED_PASSWORD}
     depends_on:
       maintenance-db:
         condition: service_healthy
