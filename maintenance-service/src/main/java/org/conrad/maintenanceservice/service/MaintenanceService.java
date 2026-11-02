@@ -70,6 +70,30 @@ public class MaintenanceService {
     }
 
     @Transactional
+    public MaintenanceRequest changeStatusAsWorker(Long requestId, Long workerId, MaintenanceStatus newStatus) {
+        MaintenanceRequest request = repository.findById(requestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found"));
+
+        MaintenanceWorker assignee = request.getAssignedWorker();
+        if (assignee == null || !assignee.getId().equals(workerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Request is not assigned to you");
+        }
+
+        if (!isAllowedWorkerTransition(request.getStatus(), newStatus)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot change status from " + request.getStatus() + " to " + newStatus);
+        }
+
+        request.setStatus(newStatus);
+        return request;
+    }
+
+    private static boolean isAllowedWorkerTransition(MaintenanceStatus from, MaintenanceStatus to) {
+        return (from == MaintenanceStatus.ASSIGNED && to == MaintenanceStatus.IN_PROGRESS)
+                || (from == MaintenanceStatus.IN_PROGRESS && to == MaintenanceStatus.RESOLVED);
+    }
+
+    @Transactional
     public MaintenanceRequest assign(Long requestId, Long workerId) {
         MaintenanceRequest request = repository.findById(requestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found"));
