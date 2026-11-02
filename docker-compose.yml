@@ -107,6 +107,7 @@ services:
       DB_USER: resident
       DB_PASSWORD: resident
       BOARD_SEED_PASSWORD: ${BOARD_SEED_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       resident-db:
         condition: service_healthy
@@ -155,6 +156,7 @@ services:
       DB_USER: maintenance
       DB_PASSWORD: maintenance
       WORKER_SEED_PASSWORD: ${WORKER_SEED_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       maintenance-db:
         condition: service_healthy
