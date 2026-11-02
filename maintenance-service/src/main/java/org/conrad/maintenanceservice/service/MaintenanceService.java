@@ -2,16 +2,19 @@ package org.conrad.maintenanceservice.service;
 
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
+import org.conrad.maintenanceservice.event.MaintenanceCompleted;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
 import org.conrad.maintenanceservice.model.MaintenanceStatus;
 import org.conrad.maintenanceservice.model.MaintenanceWorker;
 import org.conrad.maintenanceservice.repository.MaintenanceRequestRepository;
 import org.conrad.maintenanceservice.repository.MaintenanceWorkerRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,10 +23,13 @@ public class MaintenanceService {
 
     private final MaintenanceRequestRepository repository;
     private final MaintenanceWorkerRepository workerRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MaintenanceService(MaintenanceRequestRepository repository, MaintenanceWorkerRepository workerRepository) {
+    public MaintenanceService(MaintenanceRequestRepository repository, MaintenanceWorkerRepository workerRepository,
+                              ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.workerRepository = workerRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -85,6 +91,11 @@ public class MaintenanceService {
         }
 
         request.setStatus(newStatus);
+        if (newStatus == MaintenanceStatus.RESOLVED) {
+            eventPublisher.publishEvent(new MaintenanceCompleted(
+                    request.getId(), request.getResidentId(), workerId,
+                    Instant.now()));
+        }
         return request;
     }
 
