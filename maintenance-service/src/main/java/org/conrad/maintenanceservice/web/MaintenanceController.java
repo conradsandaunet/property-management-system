@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.conrad.maintenanceservice.dto.AssignWorkerRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
+import org.conrad.maintenanceservice.dto.StatusChangeRequest;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
 import org.conrad.maintenanceservice.service.MaintenanceService;
 import org.conrad.security.JwtService;
@@ -60,6 +61,13 @@ public class MaintenanceController {
     public ResponseEntity<MaintenanceResponse> assign(@PathVariable Long id, @Valid @RequestBody
         AssignWorkerRequest request) {
         return ResponseEntity.ok(MaintenanceResponse.from(maintenanceService.assign(id, request.workerId())));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<MaintenanceResponse> changeStatus(@PathVariable Long id,
+                                                            @Valid @RequestBody StatusChangeRequest request) {
+        return ResponseEntity.ok(MaintenanceResponse.from(
+                maintenanceService.changeStatusAsWorker(id, currentWorkerId(), request.status())));
     }
 
     private Long currentResidentId() {
