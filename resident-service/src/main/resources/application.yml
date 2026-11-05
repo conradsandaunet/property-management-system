@@ -22,12 +22,23 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    consumer:
+      group-id: resident-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
 app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-minutes: 60
   seed:
     board-password: ${BOARD_SEED_PASSWORD}
+  kafka:
+    topics:
+      maintenance-completed: maintenance.completed
 
 management:
   endpoints:

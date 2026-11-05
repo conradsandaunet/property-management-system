@@ -31,6 +31,9 @@ public class MaintenanceWorker {
     @Column(length = 255)
     private String email;
 
+    @Column(name = "password_hash")
+    private String passwordHash;
+
     @Column(nullable = false)
     private boolean active = true;
 

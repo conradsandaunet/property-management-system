@@ -14,7 +14,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Limits POST /api/auth/login attempts per client address (in memory, per gateway instance).
+// Limits POST /api/auth/login and /api/workers/login attempts per client address (in memory, per gateway instance).
 // Keys on request.getRemoteAddr(). Behind the nginx container, Tomcat (forward-headers-strategy:
 // native) swaps that for the X-Forwarded-For address, but only when the request comes from an
 // internal proxy address, so the header can't be used to dodge the limit from outside. nginx
@@ -34,7 +34,9 @@ class LoginRateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !("POST".equals(request.getMethod()) && "/api/auth/login".equals(request.getRequestURI()));
+        String path = request.getRequestURI();
+        return !("POST".equals(request.getMethod())
+                && ("/api/auth/login".equals(path) || "/api/workers/login".equals(path)));
     }
 
     @Override

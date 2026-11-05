@@ -11,4 +11,5 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
     List<MaintenanceRequest> findByResidentIdOrderByCreatedAtDesc(Long residentId);
     Optional<MaintenanceRequest> findByIdAndResidentId(Long id, Long residentId);
     List<MaintenanceRequest> findByStatusNotOrderByCreatedAtAsc(MaintenanceStatus status);
+    List<MaintenanceRequest> findByAssignedWorkerIdAndStatusNot(Long workerId, MaintenanceStatus status);
 }

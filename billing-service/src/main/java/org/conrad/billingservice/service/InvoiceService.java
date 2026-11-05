@@ -15,4 +15,6 @@ public interface InvoiceService {
     PaymentOverviewResponse getPaymentOverview(YearMonth period);
     InvoiceResponse markInvoicePaid(Long id);
 
+    byte[] getInvoicePdf(Long id, Long apartmentId, String authorizationHeader);
+
 }

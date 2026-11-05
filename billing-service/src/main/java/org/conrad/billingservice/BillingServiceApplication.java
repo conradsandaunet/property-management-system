@@ -17,7 +17,7 @@ public class BillingServiceApplication {
     }
 
     private static void loadDotenv() {
-        for (String dir : new String[]{".", "billing-service"}) {
+        for (String dir : new String[]{"billing-service", "."}) {
             if (new File(dir, ".env").isFile()) {
                 Dotenv dotenv = Dotenv.configure().directory(dir).ignoreIfMissing().load();
                 dotenv.entries().forEach(entry -> {

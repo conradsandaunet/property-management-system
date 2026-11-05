@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 import org.conrad.maintenanceservice.dto.AssignWorkerRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
+import org.conrad.maintenanceservice.dto.StatusChangeRequest;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
 import org.conrad.maintenanceservice.service.MaintenanceService;
+import org.conrad.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,6 +45,13 @@ public class MaintenanceController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/assigned")
+    public ResponseEntity<List<MaintenanceResponse>> getAssignedRequests() {
+        List<MaintenanceResponse> responses = maintenanceService.listAssignedTo(currentWorkerId())
+                .stream().map(MaintenanceResponse::from).toList();
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MaintenanceResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(maintenanceService.getById(id, currentResidentId()));
@@ -54,8 +63,20 @@ public class MaintenanceController {
         return ResponseEntity.ok(MaintenanceResponse.from(maintenanceService.assign(id, request.workerId())));
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<MaintenanceResponse> changeStatus(@PathVariable Long id,
+                                                            @Valid @RequestBody StatusChangeRequest request) {
+        return ResponseEntity.ok(MaintenanceResponse.from(
+                maintenanceService.changeStatusAsWorker(id, currentWorkerId(), request.status())));
+    }
+
     private Long currentResidentId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
+    private Long currentWorkerId() {
+        String subject = SecurityContextHolder.getContext().getAuthentication().getName();
+        return Long.valueOf(subject.substring(JwtService.WORKER_SUBJECT_PREFIX.length()));
     }
 }
 

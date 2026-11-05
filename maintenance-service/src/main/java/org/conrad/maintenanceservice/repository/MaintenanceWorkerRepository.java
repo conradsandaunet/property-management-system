@@ -15,4 +15,8 @@ public interface MaintenanceWorkerRepository extends JpaRepository<MaintenanceWo
 
     Optional<MaintenanceWorker> findByIdAndActiveTrue(Long id);
 
+    Optional<MaintenanceWorker> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
 }

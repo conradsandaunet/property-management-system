@@ -22,9 +22,21 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 app:
   jwt:
     secret: ${JWT_SECRET}
+    expiration-minutes: 60
+  seed:
+    worker-password: ${WORKER_SEED_PASSWORD}
+  kafka:
+    topics:
+      maintenance-completed: maintenance.completed
 
 management:
   endpoints:

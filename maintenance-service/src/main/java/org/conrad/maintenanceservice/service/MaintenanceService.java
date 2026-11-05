@@ -1,18 +1,20 @@
 package org.conrad.maintenanceservice.service;
 
-import com.sun.tools.javac.Main;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
+import org.conrad.maintenanceservice.event.MaintenanceCompleted;
 import org.conrad.maintenanceservice.model.MaintenanceRequest;
 import org.conrad.maintenanceservice.model.MaintenanceStatus;
 import org.conrad.maintenanceservice.model.MaintenanceWorker;
 import org.conrad.maintenanceservice.repository.MaintenanceRequestRepository;
 import org.conrad.maintenanceservice.repository.MaintenanceWorkerRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,10 +23,13 @@ public class MaintenanceService {
 
     private final MaintenanceRequestRepository repository;
     private final MaintenanceWorkerRepository workerRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MaintenanceService(MaintenanceRequestRepository repository, MaintenanceWorkerRepository workerRepository) {
+    public MaintenanceService(MaintenanceRequestRepository repository, MaintenanceWorkerRepository workerRepository,
+                              ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.workerRepository = workerRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -59,6 +64,44 @@ public class MaintenanceService {
                 .sorted(Comparator.comparing(MaintenanceRequest::getPriority).reversed()
                         .thenComparing(MaintenanceRequest::getCreatedAt))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MaintenanceRequest> listAssignedTo(Long workerId) {
+        return repository.findByAssignedWorkerIdAndStatusNot(workerId, MaintenanceStatus.RESOLVED)
+                .stream()
+                .sorted(Comparator.comparing(MaintenanceRequest::getPriority).reversed()
+                        .thenComparing(MaintenanceRequest::getCreatedAt))
+                .toList();
+    }
+
+    @Transactional
+    public MaintenanceRequest changeStatusAsWorker(Long requestId, Long workerId, MaintenanceStatus newStatus) {
+        MaintenanceRequest request = repository.findById(requestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found"));
+
+        MaintenanceWorker assignee = request.getAssignedWorker();
+        if (assignee == null || !assignee.getId().equals(workerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Request is not assigned to you");
+        }
+
+        if (!isAllowedWorkerTransition(request.getStatus(), newStatus)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cannot change status from " + request.getStatus() + " to " + newStatus);
+        }
+
+        request.setStatus(newStatus);
+        if (newStatus == MaintenanceStatus.RESOLVED) {
+            eventPublisher.publishEvent(new MaintenanceCompleted(
+                    request.getId(), request.getResidentId(), workerId,
+                    Instant.now()));
+        }
+        return request;
+    }
+
+    private static boolean isAllowedWorkerTransition(MaintenanceStatus from, MaintenanceStatus to) {
+        return (from == MaintenanceStatus.ASSIGNED && to == MaintenanceStatus.IN_PROGRESS)
+                || (from == MaintenanceStatus.IN_PROGRESS && to == MaintenanceStatus.RESOLVED);
     }
 
     @Transactional

@@ -38,7 +38,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 Claims claims = jwtService.validateAndParse(token);
                 boolean isManager = Boolean.TRUE.equals(claims.get("manager", Boolean.class));
-                GrantedAuthority authority = new SimpleGrantedAuthority(isManager ? "ROLE_BOARD" : "ROLE_RESIDENT");
+                boolean isWorker = JwtService.WORKER_ROLE.equals(claims.get("role", String.class));
+                GrantedAuthority authority = new SimpleGrantedAuthority(
+                        isWorker ? "ROLE_WORKER" : isManager ? "ROLE_BOARD" : "ROLE_RESIDENT");
 
                 var authentication = new UsernamePasswordAuthenticationToken(
                         claims.getSubject(), null, List.of(authority)

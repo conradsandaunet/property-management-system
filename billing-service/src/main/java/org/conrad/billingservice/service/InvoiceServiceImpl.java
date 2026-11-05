@@ -20,12 +20,16 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.conrad.billingservice.dto.ResidentDto;
+import org.conrad.billingservice.pdf.InvoicePdfGenerator;
+
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final ResidentServiceClient residentServiceClient;
+    private final InvoicePdfGenerator invoicePdfGenerator;
 
     @Override
     public InvoiceResponse payInvoice(Long id, Long apartmentId) {
@@ -43,6 +47,22 @@ public class InvoiceServiceImpl implements InvoiceService {
                         HttpStatus.NOT_FOUND, "Invoice not found for this apartment"));
 
         return InvoiceResponse.from(invoice);
+    }
+
+    @Override
+    public byte[] getInvoicePdf(Long id, Long apartmentId, String authorizationHeader) {
+        Invoice invoice = invoiceRepository.findByIdAndApartmentId(id, apartmentId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Invoice not found for this apartment"));
+
+        // Name and apartment number live in resident-service. If it's down, the PDF is still generated with fallbacks.
+        String residentName = residentServiceClient.getCurrentResident(authorizationHeader)
+                .map(ResidentDto::fullName)
+                .orElse("Beboer");
+        String apartmentNumber = residentServiceClient.getApartmentNumber(apartmentId)
+                .orElse("#" + apartmentId);
+
+        return invoicePdfGenerator.generate(invoice, residentName, apartmentNumber);
     }
 
     @Override
