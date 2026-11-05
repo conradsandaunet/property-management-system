@@ -128,6 +128,30 @@ public class ResidentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ResidentSummaryResponse> listActiveByApartment(Long apartmentId) {
+        return residentRepository.findByApartmentIdAndActiveTrue(apartmentId).stream()
+                .sorted(Comparator.comparing(Resident::getLastName).thenComparing(Resident::getFirstName))
+                .map(this::toSummary)
+                .toList();
+    }
+
+    /** True if any resident, active or removed, still points at the apartment. */
+    @Transactional(readOnly = true)
+    public boolean hasResidents(Long apartmentId) {
+        return residentRepository.existsByApartmentId(apartmentId);
+    }
+
+    @Transactional(readOnly = true)
+    public long countActive() {
+        return residentRepository.countByActiveTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long countOccupiedApartments() {
+        return residentRepository.countOccupiedApartments();
+    }
+
     private Resident findResident(Long id) {
         return residentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resident not found"));

@@ -16,6 +16,8 @@ public interface ResidentRepository extends JpaRepository<Resident, Long> {
 
     List<Resident> findByApartmentIdAndActiveTrue(Long apartmentId);
 
+    boolean existsByApartmentId(Long apartmentId);
+
     long countByActiveTrue();
 
     @Query("select count(distinct r.apartment.id) from Resident r where r.active = true")
