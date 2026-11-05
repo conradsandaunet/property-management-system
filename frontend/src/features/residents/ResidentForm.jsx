@@ -2,7 +2,7 @@ import { useState } from "react";
 import Notice from "../../components/Notice";
 import { describeError } from "./errors";
 
-export default function ResidentForm({ mode, initial, apartments, isSelf = false, onSubmit, onCancel }) {
+export default function ResidentForm({ mode, initial, apartments, isSelf = false, lockApartment = false, onSubmit, onCancel }) {
     const creating = mode === "create";
     const [form, setForm] = useState(() => ({
         firstName: initial?.firstName ?? "",
@@ -87,7 +87,7 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
             <div className="field">
                 <label className="label" htmlFor={`${idPrefix}-apartment`}>Apartment</label>
                 <select id={`${idPrefix}-apartment`} className="input" value={form.apartmentId}
-                        onChange={update("apartmentId")} required>
+                        onChange={update("apartmentId")} required disabled={lockApartment}>
                     {!form.apartmentId && apartments.length > 0 && (
                         <option value="" disabled>Select an apartment</option>
                     )}

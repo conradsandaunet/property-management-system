@@ -3,6 +3,7 @@ package org.conrad.residentservice.web;
 import org.conrad.residentservice.dto.ApartmentCreateRequest;
 import org.conrad.residentservice.dto.ApartmentResponse;
 import org.conrad.residentservice.dto.ApartmentUpdateRequest;
+import org.conrad.residentservice.dto.ResidentSummaryResponse;
 import org.conrad.residentservice.dto.BuildingOverviewResponse;
 import org.conrad.residentservice.service.ApartmentService;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,12 @@ public class ApartmentController {
     @PreAuthorize("hasRole('BOARD')")
     public BuildingOverviewResponse overview() {
         return apartmentService.getOverview();
+    }
+
+    @GetMapping("/{id}/residents")
+    @PreAuthorize("hasRole('BOARD')")
+    public List<ResidentSummaryResponse> residents(@PathVariable Long id) {
+        return apartmentService.getResidents(id);
     }
 
     @PostMapping

@@ -3,11 +3,11 @@ package org.conrad.residentservice.service;
 import org.conrad.residentservice.dto.ApartmentCreateRequest;
 import org.conrad.residentservice.dto.ApartmentResponse;
 import org.conrad.residentservice.dto.ApartmentUpdateRequest;
+import org.conrad.residentservice.dto.ResidentSummaryResponse;
 import org.conrad.residentservice.dto.BuildingOverviewResponse;
 import org.conrad.residentservice.model.Apartment;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
-import org.conrad.residentservice.repository.ResidentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,11 +25,11 @@ public class ApartmentService {
     private static final int MAX_BUILDING_LENGTH = 255;
 
     private final ApartmentRepository apartmentRepository;
-    private final ResidentRepository residentRepository;
+    private final ResidentService residentService;
 
-    public ApartmentService(ApartmentRepository apartmentRepository, ResidentRepository residentRepository) {
+    public ApartmentService(ApartmentRepository apartmentRepository, ResidentService residentService) {
         this.apartmentRepository = apartmentRepository;
-        this.residentRepository = residentRepository;
+        this.residentService = residentService;
     }
 
     @Transactional(readOnly = true)
@@ -42,8 +42,14 @@ public class ApartmentService {
     @Transactional(readOnly = true)
     public BuildingOverviewResponse getOverview() {
         long total = apartmentRepository.count();
-        long occupied = residentRepository.countOccupiedApartments();
-        return new BuildingOverviewResponse(total, occupied, total - occupied, residentRepository.countByActiveTrue());
+        long occupied = residentService.countOccupiedApartments();
+        return new BuildingOverviewResponse(total, occupied, total - occupied, residentService.countActive());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResidentSummaryResponse> getResidents(Long id) {
+        findApartment(id);
+        return residentService.listActiveByApartment(id);
     }
 
     @Transactional
@@ -99,7 +105,7 @@ public class ApartmentService {
     public void remove(String actor, Long id) {
         Apartment apartment = findApartment(id);
         // Deactivated residents still point at the apartment, so any resident blocks deletion.
-        if (residentRepository.existsByApartmentId(id)) {
+        if (residentService.hasResidents(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Apartment has residents. Move or remove them first");
         }

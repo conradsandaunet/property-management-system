@@ -34,3 +34,6 @@ export const updateApartment = (token, id, data) =>
 
 export const removeApartment = (token, id) =>
     request(`/apartments/${id}`, { token, method: "DELETE" });
+
+export const getApartmentResidents = (token, id) =>
+    request(`/apartments/${id}/residents`, { token });

@@ -408,6 +408,31 @@ class ResidentServiceTest {
     // ---- search ----
 
     @Test
+    void listActiveByApartment_returnsSummariesSortedByLastThenFirstName() {
+        Resident zed = resident(1L, "Zed", "Berg", "z@x.no", false, true, apartment1);
+        Resident ann = resident(2L, "Ann", "Aas", "a@x.no", true, true, apartment1);
+        when(residentRepository.findByApartmentIdAndActiveTrue(10L)).thenReturn(List.of(zed, ann));
+
+        List<ResidentSummaryResponse> result = residentService.listActiveByApartment(10L);
+
+        assertThat(result).extracting(ResidentSummaryResponse::firstName).containsExactly("Ann", "Zed");
+        assertThat(result.get(0).manager()).isTrue();
+        assertThat(result.get(0).apartmentId()).isEqualTo(10L);
+        assertThat(result.get(0).apartmentNumber()).isEqualTo("A1");
+    }
+
+    @Test
+    void hasResidents_andCounts_delegateToTheRepository() {
+        when(residentRepository.existsByApartmentId(10L)).thenReturn(true);
+        when(residentRepository.countByActiveTrue()).thenReturn(4L);
+        when(residentRepository.countOccupiedApartments()).thenReturn(2L);
+
+        assertThat(residentService.hasResidents(10L)).isTrue();
+        assertThat(residentService.countActive()).isEqualTo(4L);
+        assertThat(residentService.countOccupiedApartments()).isEqualTo(2L);
+    }
+
+    @Test
     void search_trimsQueryAndMapsToSummaries() {
         Resident ola = resident(2L, "Ola", "Nordmann", "ola@x.no", true, true, apartment1);
         when(residentRepository.search("ola", true)).thenReturn(List.of(ola));

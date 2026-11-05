@@ -3,11 +3,11 @@ package org.conrad.residentservice.service;
 import org.conrad.residentservice.dto.ApartmentCreateRequest;
 import org.conrad.residentservice.dto.ApartmentResponse;
 import org.conrad.residentservice.dto.ApartmentUpdateRequest;
+import org.conrad.residentservice.dto.ResidentSummaryResponse;
 import org.conrad.residentservice.dto.BuildingOverviewResponse;
 import org.conrad.residentservice.model.Apartment;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
-import org.conrad.residentservice.repository.ResidentRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +33,7 @@ class ApartmentServiceTest {
     @Mock
     private ApartmentRepository apartmentRepository;
     @Mock
-    private ResidentRepository residentRepository;
+    private ResidentService residentService;
 
     @InjectMocks
     private ApartmentService apartmentService;
@@ -46,8 +46,8 @@ class ApartmentServiceTest {
     @Test
     void getOverview_derivesVacantFromTotalAndOccupied() {
         when(apartmentRepository.count()).thenReturn(5L);
-        when(residentRepository.countOccupiedApartments()).thenReturn(3L);
-        when(residentRepository.countByActiveTrue()).thenReturn(7L);
+        when(residentService.countOccupiedApartments()).thenReturn(3L);
+        when(residentService.countActive()).thenReturn(7L);
 
         BuildingOverviewResponse overview = apartmentService.getOverview();
 
@@ -60,8 +60,8 @@ class ApartmentServiceTest {
     @Test
     void getOverview_emptyBuilding_isAllZero() {
         when(apartmentRepository.count()).thenReturn(0L);
-        when(residentRepository.countOccupiedApartments()).thenReturn(0L);
-        when(residentRepository.countByActiveTrue()).thenReturn(0L);
+        when(residentService.countOccupiedApartments()).thenReturn(0L);
+        when(residentService.countActive()).thenReturn(0L);
 
         BuildingOverviewResponse overview = apartmentService.getOverview();
 
@@ -93,6 +93,28 @@ class ApartmentServiceTest {
 
         assertThat(apartmentService.getAll()).singleElement()
                 .extracting(ApartmentResponse::residentCount).isEqualTo(0);
+    }
+
+    // ---- residents of an apartment ----
+
+    @Test
+    void getResidents_delegatesToResidentServiceForAnExistingApartment() {
+        ResidentSummaryResponse ann = new ResidentSummaryResponse(2L, "Ann", "Aas", "a@x.no", null,
+                true, true, 10L, "A1");
+        when(apartmentRepository.findById(10L)).thenReturn(Optional.of(existing()));
+        when(residentService.listActiveByApartment(10L)).thenReturn(List.of(ann));
+
+        assertThat(apartmentService.getResidents(10L)).containsExactly(ann);
+    }
+
+    @Test
+    void getResidents_unknownApartment_isNotFound() {
+        when(apartmentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> apartmentService.getResidents(99L))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+        verify(residentService, never()).listActiveByApartment(any());
     }
 
     // ---- create ----
@@ -193,7 +215,7 @@ class ApartmentServiceTest {
     void remove_emptyApartment_isDeleted() {
         Apartment apartment = existing();
         when(apartmentRepository.findById(10L)).thenReturn(Optional.of(apartment));
-        when(residentRepository.existsByApartmentId(10L)).thenReturn(false);
+        when(residentService.hasResidents(10L)).thenReturn(false);
 
         apartmentService.remove("1", 10L);
 
@@ -203,7 +225,7 @@ class ApartmentServiceTest {
     @Test
     void remove_apartmentWithResidents_isConflict() {
         when(apartmentRepository.findById(10L)).thenReturn(Optional.of(existing()));
-        when(residentRepository.existsByApartmentId(10L)).thenReturn(true);
+        when(residentService.hasResidents(10L)).thenReturn(true);
 
         assertThatThrownBy(() -> apartmentService.remove("1", 10L))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
