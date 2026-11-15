@@ -5,6 +5,16 @@ spring:
   application:
     name: resident-service
 
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        prefer-ip-address: true
+        instance-id: ${spring.application.name}-${random.value}
+        # Don't crash if Consul is down (e.g. running one service from the IDE).
+        fail-fast: false
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
