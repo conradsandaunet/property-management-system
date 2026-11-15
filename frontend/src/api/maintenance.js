@@ -18,3 +18,9 @@ export const getWorkers = (token) =>
 export const assignWorker = (token, requestId, workerId) =>
     request(`/maintenance/${requestId}/assignment`, {token, method: "PUT", body: {
         workerId }});
+
+export const getAssignedMaintenance = (token) =>
+    request("/maintenance/assigned", { token });
+
+export const changeMaintenanceStatus = (token, requestId, status) =>
+    request(`/maintenance/${requestId}/status`, { token, method: "PATCH", body: { status } });

@@ -13,17 +13,19 @@ import ManageApartmentsPage from "../features/residents/ManageApartmentsPage";
 import MyRequestPage from "../features/maintenance/MyRequestPage";
 import NewRequestPage from "../features/maintenance/NewRequestPage";
 import OpenRequestPage from "../features/maintenance/OpenRequestPage.jsx";
+import WorkOrdersPage from "../features/maintenance/WorkOrdersPage";
 
 export default function App() {
-    const { token } = useAuth();
+    const { token, role } = useAuth();
 
     return (
         <Routes>
             <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage />} />
+            <Route path="/worker/login" element={token ? <Navigate to="/" replace /> : <LoginPage worker />} />
 
             <Route element={<RequireAuth />}>
                 <Route element={<AppLayout />}>
-                    <Route index element={<HomePage />} />
+                    <Route index element={role === "WORKER" ? <Navigate to="/work-orders" replace /> : <HomePage />} />
 
                     <Route path="maintenance" element={<MyRequestPage token={token} />} />
                     <Route path="maintenance/new" element={<NewRequestPage token={token} />} />
@@ -39,6 +41,10 @@ export default function App() {
                         <Route path="board/residents" element={<ManageResidentsPage />} />
                         <Route path="board/apartments" element={<ManageApartmentsPage />} />
                         <Route path="board/maintenance" element={<OpenRequestPage />} />                    </Route>
+
+                    <Route element={<RequireRole roles={["WORKER"]} />}>
+                        <Route path="work-orders" element={<WorkOrdersPage />} />
+                    </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>

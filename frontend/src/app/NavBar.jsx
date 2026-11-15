@@ -3,6 +3,8 @@ import Badge from "../components/Badge";
 import { useAuth } from "../auth/useAuth";
 import { NAV_ITEMS } from "./nav";
 
+const ROLE_LABELS = { BOARD: "Board", WORKER: "Worker", RESIDENT: "Resident" };
+
 export default function NavBar() {
     const { me, role, logout } = useAuth();
     const items = NAV_ITEMS[role] ?? [];
@@ -24,9 +26,11 @@ export default function NavBar() {
                 </nav>
 
                 <div className="navbar__user">
-                    <span className="navbar__name">{me.firstName} {me.lastName}</span>
+                    <span className="navbar__name">
+                        {role === "WORKER" ? me.email : `${me.firstName} ${me.lastName}`}
+                    </span>
                     <Badge variant={role === "BOARD" ? "info" : undefined}>
-                        {role === "BOARD" ? "Board" : "Resident"}
+                        {ROLE_LABELS[role]}
                     </Badge>
                     <button className="btn-link" type="button" onClick={logout}>Log out</button>
                 </div>

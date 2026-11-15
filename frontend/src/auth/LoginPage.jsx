@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { login as requestLogin } from "../api/auth";
+import { Link } from "react-router-dom";
+import { login as requestLogin, workerLogin } from "../api/auth";
 import { useAuth } from "./useAuth";
 import "./LoginPage.css";
 
-export default function LoginPage() {
+export default function LoginPage({ worker = false }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +15,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const token = await requestLogin(email, password);
+      const token = await (worker ? workerLogin : requestLogin)(email, password);
       login(token);
     } catch {
       setError("Wrong email or password.");
@@ -29,7 +30,7 @@ export default function LoginPage() {
           <span className="auth-eyebrow-text">Resident Portal</span>
         </div>
 
-        <h1 className="auth-heading">Sign in</h1>
+        <h1 className="auth-heading">{worker ? "Worker sign in" : "Sign in"}</h1>
         <hr className="auth-rule" />
 
         <form onSubmit={handleSubmit} noValidate>
@@ -69,6 +70,10 @@ export default function LoginPage() {
             Sign in
           </button>
         </form>
+
+        <Link className="auth-switch" to={worker ? "/login" : "/worker/login"}>
+          {worker ? "Resident or board sign in" : "Maintenance worker? Sign in here"}
+        </Link>
       </div>
     </div>
   );
