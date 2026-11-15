@@ -74,7 +74,10 @@ class GatewayTest {
         registry.add("RESIDENT_URL", () -> url("resident"));
         registry.add("BILLING_URL", () -> url("billing"));
         registry.add("MAINTENANCE_URL", () -> url("maintenance"));
-        registry.add("RESERVATION_URL", () -> url("reservation"));
+        // The reservation route is lb://reservation-service. Consul is off in tests, so give the
+        // simple discovery client the stub's address instead.
+        registry.add("spring.cloud.discovery.client.simple.instances.reservation-service[0].uri",
+                () -> url("reservation"));
         registry.add("CORS_ALLOWED_ORIGINS", () -> "http://localhost:*");
         registry.add("JWT_SECRET", () -> SECRET);
     }

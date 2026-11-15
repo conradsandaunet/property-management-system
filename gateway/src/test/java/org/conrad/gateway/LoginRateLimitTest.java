@@ -24,7 +24,6 @@ class LoginRateLimitTest {
         registry.add("RESIDENT_URL", () -> "http://127.0.0.1:1");
         registry.add("BILLING_URL", () -> "http://127.0.0.1:1");
         registry.add("MAINTENANCE_URL", () -> "http://127.0.0.1:1");
-        registry.add("RESERVATION_URL", () -> "http://127.0.0.1:1");
         registry.add("CORS_ALLOWED_ORIGINS", () -> "http://localhost:*");
         registry.add("JWT_SECRET", () -> "test-secret-test-secret-test-secret-123456");
     }

@@ -14,6 +14,12 @@ spring:
         instance-id: ${spring.application.name}-${random.value}
         # Don't crash if Consul is down (e.g. running one service from the IDE).
         fail-fast: false
+        # Only route to instances whose Consul health check is passing.
+        query-passing: true
+    loadbalancer:
+      cache:
+        # Default is 35s, which keeps sending traffic to a dead instance for that long.
+        ttl: 5s
     gateway:
       server:
         webmvc:
@@ -37,7 +43,7 @@ spring:
               filters:
                 - StripPrefix=1
             - id: reservation
-              uri: ${RESERVATION_URL}
+              uri: lb://reservation-service
               predicates:
                 - Path=/api/reservations/**,/api/resources/**
               filters:
