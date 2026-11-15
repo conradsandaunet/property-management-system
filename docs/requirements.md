@@ -48,6 +48,7 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [ ] 🔴 As a maintenance worker, I want to change the status of a request (Accept → Start work → Complete), so that progress is visible to others.
 - [ ] 🔴 As a maintenance worker, I want the system to publish a `MaintenanceCompleted` event when I complete a request, so that other services can react to it (e.g. notify the resident).
 - [ ] 🟡 As a maintenance worker, I want to add a comment to a request, so that I can document what was done.
+- [ ] ⚪ As a maintenance worker, I want to see completed work orders.
 
 ## 2.4 Reservation Service
 
