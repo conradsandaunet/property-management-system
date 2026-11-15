@@ -4,6 +4,9 @@ x-service: &service
 x-jwt: &jwt
   JWT_SECRET: ${JWT_SECRET}
 
+x-consul: &consul
+  CONSUL_HOST: consul
+
 services:
   resident-db:
     image: postgres:16-alpine
@@ -118,13 +121,15 @@ services:
       args:
         MODULE: resident-service
     environment:
-      <<: *jwt
+      <<: [*jwt, *consul]
       DB_URL: jdbc:postgresql://resident-db:5432/resident
       DB_USER: resident
       DB_PASSWORD: resident
       BOARD_SEED_PASSWORD: ${BOARD_SEED_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
+      consul:
+        condition: service_healthy
       resident-db:
         condition: service_healthy
       kafka:
@@ -143,12 +148,14 @@ services:
       args:
         MODULE: billing-service
     environment:
-      <<: *jwt
+      <<: [*jwt, *consul]
       DB_URL: jdbc:postgresql://billing-db:5432/billing
       DB_USER: billing
       DB_PASSWORD: billing
       RESIDENT_SERVICE_URL: http://resident-service:8081
     depends_on:
+      consul:
+        condition: service_healthy
       billing-db:
         condition: service_healthy
       resident-service:
@@ -167,13 +174,15 @@ services:
       args:
         MODULE: maintenance-service
     environment:
-      <<: *jwt
+      <<: [*jwt, *consul]
       DB_URL: jdbc:postgresql://maintenance-db:5432/maintenance
       DB_USER: maintenance
       DB_PASSWORD: maintenance
       WORKER_SEED_PASSWORD: ${WORKER_SEED_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
+      consul:
+        condition: service_healthy
       maintenance-db:
         condition: service_healthy
       kafka:
@@ -192,11 +201,13 @@ services:
       args:
         MODULE: reservation-service
     environment:
-      <<: *jwt
+      <<: [*jwt, *consul]
       DB_URL: jdbc:postgresql://reservation-db:5432/reservation
       DB_USER: reservation
       DB_PASSWORD: reservation
     depends_on:
+      consul:
+        condition: service_healthy
       reservation-db:
         condition: service_healthy
     healthcheck:
@@ -215,13 +226,15 @@ services:
       args:
         MODULE: gateway
     environment:
-      <<: *jwt
+      <<: [*jwt, *consul]
       RESIDENT_URL: http://resident-service:8081
       BILLING_URL: http://billing-service:8082
       MAINTENANCE_URL: http://maintenance-service:8083
       RESERVATION_URL: http://reservation-service:8084
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:*}
     depends_on:
+      consul:
+        condition: service_healthy
       resident-service:
         condition: service_healthy
       billing-service:
