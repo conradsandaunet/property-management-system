@@ -266,16 +266,6 @@ services:
       gateway:
         condition: service_healthy
 
-  # Prints the app URL once everything is healthy, so it is the last line in the
-  # `docker compose up` output. Exits right away; nothing is left running.
-  app-url:
-    image: alpine:3.20
-    restart: "no"
-    command: ["echo", "Ready: open http://localhost:${FRONTEND_PORT:-3000}"]
-    depends_on:
-      frontend:
-        condition: service_healthy
-
 volumes:
   resident-db-data:
   billing-db-data:
