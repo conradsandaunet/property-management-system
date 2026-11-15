@@ -11,3 +11,11 @@ export async function login(email, password) {
 export function getMe(token) {
     return request("/auth/me", { token });
 }
+
+export async function workerLogin(email, password) {
+    const data = await request("/workers/login", {
+        method: "POST",
+        body: { email, password },
+    });
+    return data.token;
+}

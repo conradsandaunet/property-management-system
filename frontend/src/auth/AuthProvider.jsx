@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "./authContext";
 import { getMe } from "../api/auth";
 import { setUnauthorizedHandler } from "../api/client";
+import { workerFromToken } from "./token";
 
 export default function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem("token"));
@@ -25,8 +26,10 @@ export default function AuthProvider({ children }) {
         setUnauthorizedHandler(logout);
     }, [logout]);
 
+    const worker = useMemo(() => workerFromToken(token), [token]);
+
     useEffect(() => {
-        if (!token) return;
+        if (!token || worker) return;
         let cancelled = false;
         getMe(token)
             .then((data) => {
@@ -38,7 +41,7 @@ export default function AuthProvider({ children }) {
         return () => {
             cancelled = true;
         };
-    }, [token]);
+    }, [token, worker]);
 
     const refreshMe = useCallback(
         () => getMe(token).then(setMe).catch(() => {}),
@@ -46,9 +49,19 @@ export default function AuthProvider({ children }) {
     );
 
     const value = useMemo(() => {
-        const role = me ? (me.manager ? "BOARD" : "RESIDENT") : null;
-        return { token, me, role, meError, loading: Boolean(token) && !me && !meError, login, logout, refreshMe };
-    }, [token, me, meError, login, logout, refreshMe]);
+        const currentMe = worker ?? me;
+        const role = worker ? "WORKER" : me ? (me.manager ? "BOARD" : "RESIDENT") : null;
+        return {
+            token,
+            me: currentMe,
+            role,
+            meError: worker ? false : meError,
+            loading: Boolean(token) && !currentMe && !meError,
+            login,
+            logout,
+            refreshMe,
+        };
+    }, [token, worker, me, meError, login, logout, refreshMe]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

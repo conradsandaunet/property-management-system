@@ -107,3 +107,19 @@
 .auth-submit:active {
   transform: scale(0.98);
 }
+
+.auth-switch {
+  display: inline-block;
+  margin-top: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+}
+
+.auth-switch:hover {
+  color: var(--blue);
+}
