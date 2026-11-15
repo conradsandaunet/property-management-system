@@ -25,19 +25,19 @@ spring:
         webmvc:
           routes:
             - id: resident
-              uri: ${RESIDENT_URL}
+              uri: lb://resident-service
               predicates:
                 - Path=/api/auth/**,/api/residents/**,/api/apartments/**
               filters:
                 - StripPrefix=1
             - id: billing
-              uri: ${BILLING_URL}
+              uri: lb://billing-service
               predicates:
                 - Path=/api/invoices/**
               filters:
                 - StripPrefix=1
             - id: maintenance
-              uri: ${MAINTENANCE_URL}
+              uri: lb://maintenance-service
               predicates:
                 - Path=/api/maintenance/**,/api/workers/**
               filters:
