@@ -95,6 +95,22 @@ services:
       retries: 10
       start_period: 20s
 
+  # Service discovery, health overview and (later) central configuration.
+  # Dev mode keeps everything in memory, which is fine here. UI: http://localhost:8500
+  consul:
+    <<: *service
+    image: hashicorp/consul:2.0.0
+    container_name: consul
+    command: agent -dev -node=consul -client=0.0.0.0
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: ["CMD-SHELL", "consul members > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
   resident-service:
     <<: *service
     build:
