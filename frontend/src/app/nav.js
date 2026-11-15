@@ -11,4 +11,7 @@ export const NAV_ITEMS = {
         { label: "Apartments", to: "/board/apartments" },
         { label: "Maintenance", to: "/board/maintenance"}
     ],
+    WORKER: [
+        { label: "Work orders", to: "/work-orders" },
+    ],
 };
