@@ -71,13 +71,12 @@ class GatewayTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("RESIDENT_URL", () -> url("resident"));
-        registry.add("BILLING_URL", () -> url("billing"));
-        registry.add("MAINTENANCE_URL", () -> url("maintenance"));
-        // The reservation route is lb://reservation-service. Consul is off in tests, so give the
-        // simple discovery client the stub's address instead.
-        registry.add("spring.cloud.discovery.client.simple.instances.reservation-service[0].uri",
-                () -> url("reservation"));
+        // All routes are lb://<service>. Consul is off in tests, so give the simple discovery
+        // client the stubs' addresses instead.
+        for (String name : List.of("resident", "billing", "maintenance", "reservation")) {
+            registry.add("spring.cloud.discovery.client.simple.instances." + name + "-service[0].uri",
+                    () -> url(name));
+        }
         registry.add("CORS_ALLOWED_ORIGINS", () -> "http://localhost:*");
         registry.add("JWT_SECRET", () -> SECRET);
     }

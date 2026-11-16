@@ -227,9 +227,6 @@ services:
         MODULE: gateway
     environment:
       <<: [*jwt, *consul]
-      RESIDENT_URL: http://resident-service:8081
-      BILLING_URL: http://billing-service:8082
-      MAINTENANCE_URL: http://maintenance-service:8083
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:*}
     depends_on:
       consul:

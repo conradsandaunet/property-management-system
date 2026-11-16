@@ -6,6 +6,7 @@ import org.conrad.reservationservice.model.ReservationStatus;
 import org.conrad.reservationservice.model.Resource;
 import org.conrad.reservationservice.repository.ReservationRepository;
 import org.conrad.reservationservice.repository.ResourceRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -57,8 +58,13 @@ public class ReservationService {
                 .status(ReservationStatus.ACTIVE)
                 .build();
 
-        return reservationRepository.save(reservation);
-
+        // The check above can race with another request or instance; the database's exclusion
+        // constraint is the real guarantee, so translate its rejection into the same 409.
+        try {
+            return reservationRepository.saveAndFlush(reservation);
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Time slot already booked");
+        }
     }
 
     public Reservation cancel(Long reservationId, Long residentId) {
