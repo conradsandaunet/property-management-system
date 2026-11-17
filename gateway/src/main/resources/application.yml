@@ -27,7 +27,7 @@ spring:
             - id: resident
               uri: lb://resident-service
               predicates:
-                Path=/api/auth/**,/api/residents/**,/api/apartments/**,/api/notifications/**
+                - Path=/api/auth/**,/api/residents/**,/api/apartments/**,/api/notifications/**
               filters:
                 - StripPrefix=1
             - id: billing
