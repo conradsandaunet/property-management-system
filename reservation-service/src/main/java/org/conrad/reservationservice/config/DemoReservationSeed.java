@@ -13,6 +13,10 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,16 +31,35 @@ public class DemoReservationSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoReservationSeed.class);
 
+    // Arbitrary constant: all instances must ask for the same lock.
+    private static final long SEED_LOCK_ID = 84_001L;
+
     private final ResourceRepository resourceRepository;
     private final ReservationRepository reservationRepository;
+    private final EntityManager entityManager;
+    private final TransactionTemplate transaction;
 
-    public DemoReservationSeed(ResourceRepository resourceRepository, ReservationRepository reservationRepository) {
+    public DemoReservationSeed(ResourceRepository resourceRepository, ReservationRepository reservationRepository,
+                               EntityManager entityManager, PlatformTransactionManager transactionManager) {
         this.resourceRepository = resourceRepository;
         this.reservationRepository = reservationRepository;
+        this.entityManager = entityManager;
+        this.transaction = new TransactionTemplate(transactionManager);
     }
 
     @Override
     public void run(ApplicationArguments args) {
+        // With several instances starting at once, "table is empty" is true for all of them. A
+        // Postgres advisory lock (held until the transaction ends) makes the check-and-insert
+        // one instance at a time, so the second one sees the first one's rows and skips.
+        transaction.executeWithoutResult(status -> {
+            entityManager.createNativeQuery("select 1 from (select pg_advisory_xact_lock(" + SEED_LOCK_ID + ")) as l")
+                    .getSingleResult();
+            seed();
+        });
+    }
+
+    void seed() {
         if (resourceRepository.count() > 0) {
             return;
         }
