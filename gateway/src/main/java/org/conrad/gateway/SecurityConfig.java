@@ -27,8 +27,8 @@ public class SecurityConfig {
     private final long loginPeriodSeconds;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          @Value("${app.rate-limit.login.attempts}") int loginAttempts,
-                          @Value("${app.rate-limit.login.period-seconds}") long loginPeriodSeconds) {
+                          @Value("${app.rate-limit.login.attempts:5}") int loginAttempts,
+                          @Value("${app.rate-limit.login.period-seconds:60}") long loginPeriodSeconds) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.loginAttempts = loginAttempts;
         this.loginPeriodSeconds = loginPeriodSeconds;

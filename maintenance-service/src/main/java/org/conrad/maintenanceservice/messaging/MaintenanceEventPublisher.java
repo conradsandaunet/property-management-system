@@ -20,7 +20,7 @@ public class MaintenanceEventPublisher {
     private final String topic;
 
     public MaintenanceEventPublisher(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper,
-                                     @Value("${app.kafka.topics.maintenance-completed}") String topic) {
+                                     @Value("${app.kafka.topics.maintenance-completed:maintenance.completed}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
         this.topic = topic;
