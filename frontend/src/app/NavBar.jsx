@@ -11,7 +11,7 @@ export default function NavBar() {
 
     return (
         <header className="navbar">
-            <div className="navbar__inner">
+            <div className={`navbar__inner${items.length > 5 ? " navbar__inner--wrap" : ""}`}>
                 <Link className="navbar__brand" to="/">
                     <span className="navbar__mark" />
                     <span className="navbar__brand-text">Resident Portal</span>

@@ -21,15 +21,8 @@ function isExpired(token) {
     }
 }
 
-export async function request(path, { token, method = "GET", body } = {}) {
-    const response = await fetch(`${API}${path}`, {
-        method,
-        headers: {
-            ...(body && { "Content-Type": "application/json" }),
-            ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: body && JSON.stringify(body),
-    });
+async function send(path, init, token) {
+    const response = await fetch(`${API}${path}`, init);
 
     if (token && (response.status == 401 || (response.status == 403 && isExpired(token)))) {
         onUnauthorized();
@@ -38,6 +31,26 @@ export async function request(path, { token, method = "GET", body } = {}) {
     if (!response.ok) {
         throw new ApiError(response.status, `Request failed: ${response.status}`);
     }
+    return response;
+}
+
+/** For binary responses such as PDFs. */
+export async function requestBlob(path, { token } = {}) {
+    const response = await send(path, {
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+    }, token);
+    return response.blob();
+}
+
+export async function request(path, { token, method = "GET", body } = {}) {
+    const response = await send(path, {
+        method,
+        headers: {
+            ...(body && { "Content-Type": "application/json" }),
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: body && JSON.stringify(body),
+    }, token);
 
     const text = await response.text();
     return text ? JSON.parse(text) : null;

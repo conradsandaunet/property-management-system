@@ -87,6 +87,19 @@
   color: var(--ink);
 }
 
+/* Board has more menu items than fit beside the brand and user, so the links get their own row. */
+.navbar__inner--wrap {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+
+.navbar__inner--wrap .navbar__links {
+  order: 3;
+  width: 100%;
+  min-height: 44px;
+  overflow-x: auto;
+}
+
 @media (max-width: 720px) {
   .navbar__inner {
     flex-wrap: wrap;

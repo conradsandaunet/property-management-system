@@ -14,6 +14,12 @@ import MyRequestPage from "../features/maintenance/MyRequestPage";
 import NewRequestPage from "../features/maintenance/NewRequestPage";
 import OpenRequestPage from "../features/maintenance/OpenRequestPage.jsx";
 import WorkOrdersPage from "../features/maintenance/WorkOrdersPage";
+import InvoicesPage from "../features/billing/InvoicesPage";
+import BoardInvoicesPage from "../features/billing/BoardInvoicesPage";
+import ReservationsLayout from "../features/reservations/ReservationsLayout";
+import BookPage from "../features/reservations/BookPage";
+import MyReservationsPage from "../features/reservations/MyReservationsPage";
+import BoardResourcesPage from "../features/reservations/BoardResourcesPage";
 
 export default function App() {
     const { token, role } = useAuth();
@@ -30,6 +36,14 @@ export default function App() {
                     <Route path="maintenance" element={<MyRequestPage token={token} />} />
                     <Route path="maintenance/new" element={<NewRequestPage token={token} />} />
 
+                    <Route path="invoices" element={<InvoicesPage />} />
+
+                    <Route path="reservations" element={<ReservationsLayout />}>
+                        <Route index element={<Navigate to="book" replace />} />
+                        <Route path="book" element={<BookPage />} />
+                        <Route path="mine" element={<MyReservationsPage />} />
+                    </Route>
+
                     <Route path="account" element={<AccountLayout />}>
                         <Route index element={<Navigate to="household" replace />} />
                         <Route path="household" element={<HouseholdPage />} />
@@ -40,7 +54,10 @@ export default function App() {
                         <Route path="board/overview" element={<OverviewPage />} />
                         <Route path="board/residents" element={<ManageResidentsPage />} />
                         <Route path="board/apartments" element={<ManageApartmentsPage />} />
-                        <Route path="board/maintenance" element={<OpenRequestPage />} />                    </Route>
+                        <Route path="board/maintenance" element={<OpenRequestPage />} />
+                        <Route path="board/invoices" element={<BoardInvoicesPage />} />
+                        <Route path="board/resources" element={<BoardResourcesPage />} />
+                    </Route>
 
                     <Route element={<RequireRole roles={["WORKER"]} />}>
                         <Route path="work-orders" element={<WorkOrdersPage />} />
