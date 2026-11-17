@@ -2,11 +2,13 @@ import { Link, NavLink } from "react-router-dom";
 import Badge from "../components/Badge";
 import { useAuth } from "../auth/useAuth";
 import { NAV_ITEMS } from "./nav";
+import { useNotifications } from "../features/notifications/useNotifications";
 
 const ROLE_LABELS = { BOARD: "Board", WORKER: "Worker", RESIDENT: "Resident" };
 
 export default function NavBar() {
     const { me, role, logout } = useAuth();
+    const { unread } = useNotifications();
     const items = NAV_ITEMS[role] ?? [];
 
     return (
@@ -21,6 +23,9 @@ export default function NavBar() {
                     {items.map((item) => (
                         <NavLink key={item.to} className="navbar__link" to={item.to} end={item.end}>
                             {item.label}
+                            {item.unreadCount && unread > 0 && (
+                                <span className="navbar__count" aria-label={`${unread} unread`}>{unread}</span>
+                            )}
                         </NavLink>
                     ))}
                 </nav>

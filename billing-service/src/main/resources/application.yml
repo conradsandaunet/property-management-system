@@ -35,6 +35,9 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
+  seed:
+    # Demo data on first start (set SEED_DEMO_DATA=false to skip).
+    demo-data: ${SEED_DEMO_DATA:true}
 
 resident-service:
   base-url: ${RESIDENT_SERVICE_URL}

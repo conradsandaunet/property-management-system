@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 public class AdminSeedConfig implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(AdminSeedConfig.class);
@@ -42,9 +44,9 @@ public class AdminSeedConfig implements ApplicationRunner {
         }
 
         Apartment apartment = Apartment.builder()
-                .apartmentNumber("SEED-1")
-                .floor(0)
-                .buildingName("Seed Building")
+                .apartmentNumber("101")
+                .floor(1)
+                .buildingName("Solsiden Borettslag")
                 .build();
         apartmentRepository.save(apartment);
 

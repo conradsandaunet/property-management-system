@@ -44,6 +44,7 @@ app:
     expiration-minutes: 60
   seed:
     worker-password: ${WORKER_SEED_PASSWORD}
+    demo-data: ${SEED_DEMO_DATA:true}
   kafka:
     topics:
       maintenance-completed: maintenance.completed

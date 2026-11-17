@@ -4,6 +4,7 @@ export const NAV_ITEMS = {
         { label: "Maintenance", to: "/maintenance" },
         { label: "Invoices", to: "/invoices" },
         { label: "Reservations", to: "/reservations" },
+        { label: "Notifications", to: "/notifications", unreadCount: true },
         { label: "Account", to: "/account" },
     ],
     BOARD: [
@@ -14,6 +15,7 @@ export const NAV_ITEMS = {
         { label: "Maintenance", to: "/board/maintenance" },
         { label: "Invoices", to: "/board/invoices" },
         { label: "Resources", to: "/board/resources" },
+        { label: "Notifications", to: "/notifications", unreadCount: true },
     ],
     WORKER: [
         { label: "Work orders", to: "/work-orders" },

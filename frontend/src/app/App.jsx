@@ -20,6 +20,7 @@ import ReservationsLayout from "../features/reservations/ReservationsLayout";
 import BookPage from "../features/reservations/BookPage";
 import MyReservationsPage from "../features/reservations/MyReservationsPage";
 import BoardResourcesPage from "../features/reservations/BoardResourcesPage";
+import NotificationsPage from "../features/notifications/NotificationsPage";
 
 export default function App() {
     const { token, role } = useAuth();
@@ -57,6 +58,10 @@ export default function App() {
                         <Route path="board/maintenance" element={<OpenRequestPage />} />
                         <Route path="board/invoices" element={<BoardInvoicesPage />} />
                         <Route path="board/resources" element={<BoardResourcesPage />} />
+                    </Route>
+
+                    <Route element={<RequireRole roles={["RESIDENT", "BOARD"]} />}>
+                        <Route path="notifications" element={<NotificationsPage />} />
                     </Route>
 
                     <Route element={<RequireRole roles={["WORKER"]} />}>
