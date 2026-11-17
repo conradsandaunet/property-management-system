@@ -43,13 +43,16 @@ export async function requestBlob(path, { token } = {}) {
 }
 
 export async function request(path, { token, method = "GET", body } = {}) {
+    // FormData (file uploads) must go out as-is: the browser sets the multipart Content-Type
+    // with its boundary itself.
+    const isForm = body instanceof FormData;
     const response = await send(path, {
         method,
         headers: {
-            ...(body && { "Content-Type": "application/json" }),
+            ...(body && !isForm && { "Content-Type": "application/json" }),
             ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: body && JSON.stringify(body),
+        body: isForm ? body : body && JSON.stringify(body),
     }, token);
 
     const text = await response.text();

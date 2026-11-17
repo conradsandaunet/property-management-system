@@ -66,7 +66,9 @@ Ola and Ingrid Hansen share apartment 201, and Sofie and Emil share 301.
 
 **Board member**
 - *Overview*: apartments, occupied/vacant, residents.
-- *Residents* and *Apartments*: add, edit, remove; add or move residents from an apartment.
+- *Residents* and *Apartments*: add, edit, remove; add or move residents from an apartment;
+  upload and remove photos of an apartment (JPEG, PNG or WebP, up to 5 MB each, max 10; stored in
+  the resident database).
 - *Maintenance*: all open requests by priority, assign a worker.
 - *Invoices*: generate monthly invoices, see paid/pending/overdue for the building, mark as paid.
 - *Resources*: manage shared resources, block one for a period (e.g. maintenance), see its bookings.

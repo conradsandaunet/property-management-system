@@ -114,6 +114,12 @@ public class ApartmentService {
         log.info("Board member (residentId={}) removed apartmentId={}", actor, id);
     }
 
+    /** For other services in this module (photos): 404 if there is no such apartment. */
+    @Transactional(readOnly = true)
+    public void requireExists(Long id) {
+        findApartment(id);
+    }
+
     private Apartment findApartment(Long id) {
         return apartmentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Apartment not found"));

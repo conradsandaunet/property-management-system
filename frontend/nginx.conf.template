@@ -4,6 +4,8 @@ server {
 
     # Same job as the Vite dev proxy: /api goes to the gateway, which strips the prefix.
     location /api/ {
+        # Apartment photo uploads (the service allows 5 MB per photo); nginx's default is 1 MB.
+        client_max_body_size 6m;
         proxy_pass ${GATEWAY_URL};
         proxy_set_header Host $http_host;
         # Overwrite (not append to) the header so a client can't forge its address
