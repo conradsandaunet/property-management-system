@@ -39,6 +39,13 @@ public class ReservationController {
         return ResponseEntity.ok(toResponse(cancelled));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<List<ReservationResponse>> listMine() {
+        List<ReservationResponse> responses = reservationService.listForResident(currentResidentId())
+                .stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('BOARD')")
     public ResponseEntity<List<ReservationResponse>> listForResource(@RequestParam Long resourceId) {

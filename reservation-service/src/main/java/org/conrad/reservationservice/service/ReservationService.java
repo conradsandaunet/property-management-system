@@ -81,6 +81,10 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
+    public List<Reservation> listForResident(Long residentId) {
+        return reservationRepository.findByResidentId(residentId);
+    }
+
     public List<Reservation> listForResource(Long resourceId) {
         resourceRepository.findById(resourceId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
         return reservationRepository.findByResourceIdAndStatus(resourceId, ReservationStatus.ACTIVE);
