@@ -17,15 +17,15 @@ import java.util.Set;
 
 @Component
 @Order(1)
-public class DevWorkerSeedConfig implements ApplicationRunner {
+public class WorkerSeed implements ApplicationRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(DevWorkerSeedConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(WorkerSeed.class);
 
     private final MaintenanceWorkerRepository workerRepository;
     private final PasswordEncoder passwordEncoder;
     private final String seedPassword;
 
-    public DevWorkerSeedConfig(
+    public WorkerSeed(
             MaintenanceWorkerRepository workerRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.worker-password}") String seedPassword
