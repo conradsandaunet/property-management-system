@@ -40,6 +40,8 @@ class GatewayTest {
     record Seen(String service, String method, String path, String authorization, String body) {}
 
     private static final List<Seen> seen = new CopyOnWriteArrayList<>();
+    /** The last request body as raw bytes (the Seen record decodes it as text). */
+    private static volatile byte[] lastRawBody = new byte[0];
     private static final Map<String, HttpServer> stubs = Map.of(
             "resident", startStub("resident"),
             "billing", startStub("billing"),
@@ -50,7 +52,9 @@ class GatewayTest {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
             server.createContext("/", exchange -> {
-                String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                byte[] raw = exchange.getRequestBody().readAllBytes();
+                lastRawBody = raw;
+                String body = new String(raw, StandardCharsets.UTF_8);
                 seen.add(new Seen(name, exchange.getRequestMethod(), exchange.getRequestURI().getPath(),
                         exchange.getRequestHeaders().getFirst("Authorization"), body));
                 byte[] response = ("from-" + name).getBytes(StandardCharsets.UTF_8);
@@ -115,6 +119,32 @@ class GatewayTest {
     }
 
     // ---- routing ----
+
+    @Test
+    void forwardsMultipartFileUploadsWithBinaryBodyIntact() throws Exception {
+        byte[] image = new byte[200_000];
+        for (int i = 0; i < image.length; i++) image[i] = (byte) (i * 31);
+        String boundary = "----test-boundary";
+        byte[] head = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"room.png\"\r\n"
+                + "Content-Type: image/png\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1);
+        byte[] tail = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.ISO_8859_1);
+        byte[] payload = new byte[head.length + image.length + tail.length];
+        System.arraycopy(head, 0, payload, 0, head.length);
+        System.arraycopy(image, 0, payload, head.length, image.length);
+        System.arraycopy(tail, 0, payload, head.length + image.length, tail.length);
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/apartments/1/photos"))
+                .header("Authorization", "Bearer " + validToken())
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(payload))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(seen).hasSize(1);
+        assertThat(seen.get(0).path()).isEqualTo("/apartments/1/photos");
+        assertThat(lastRawBody).isEqualTo(payload);
+    }
 
     @Test
     void routesEachPathGroupToItsServiceAndStripsApiPrefix() throws Exception {

@@ -1,4 +1,4 @@
-import { request } from "./client";
+import { request, requestBlob } from "./client";
 
 export const getHousehold = (token) =>
     request("/residents/household", { token });
@@ -37,3 +37,20 @@ export const removeApartment = (token, id) =>
 
 export const getApartmentResidents = (token, id) =>
     request(`/apartments/${id}/residents`, { token });
+
+
+export const getApartmentPhotos = (token, apartmentId) =>
+    request(`/apartments/${apartmentId}/photos`, { token });
+
+export const uploadApartmentPhoto = (token, apartmentId, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request(`/apartments/${apartmentId}/photos`, { token, method: "POST", body: form });
+};
+
+export const removeApartmentPhoto = (token, apartmentId, photoId) =>
+    request(`/apartments/${apartmentId}/photos/${photoId}`, { token, method: "DELETE" });
+
+/** Photos need the token, so they can't be a plain <img src>. Returns a Blob. */
+export const getApartmentPhotoBlob = (token, apartmentId, photoId) =>
+    requestBlob(`/apartments/${apartmentId}/photos/${photoId}`, { token });

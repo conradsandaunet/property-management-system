@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: resident-service
+  servlet:
+    multipart:
+      # Apartment photos (the service also checks the size and the file type itself).
+      max-file-size: 5MB
+      max-request-size: 6MB
   config:
     # Shared and per-service settings live in Consul KV (config/application and config/<name>).
     # optional: the service still starts, on its local defaults, when Consul is unreachable.

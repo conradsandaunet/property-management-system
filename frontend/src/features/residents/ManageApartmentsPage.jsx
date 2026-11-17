@@ -3,6 +3,7 @@ import Badge from "../../components/Badge";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
 import ApartmentForm from "./ApartmentForm";
+import ApartmentPhotos from "./ApartmentPhotos";
 import ResidentForm from "./ResidentForm";
 import { describeError } from "./errors";
 import { useAsync } from "../../hooks/useAsync";
@@ -27,6 +28,7 @@ export default function ManageApartmentsPage() {
     const [confirmingId, setConfirmingId] = useState(null);
     const [error, setError] = useState("");
     const [expandedId, setExpandedId] = useState(null);
+    const [photosId, setPhotosId] = useState(null);
     const [residents, setResidents] = useState(null);
     const [addingResidentId, setAddingResidentId] = useState(null);
     const [residentsKey, setResidentsKey] = useState(0);
@@ -174,6 +176,10 @@ export default function ManageApartmentsPage() {
                                             {expandedId === a.id ? "Hide residents" : "Residents"}
                                         </button>
                                         <button className="btn-link" type="button"
+                                                onClick={() => setPhotosId(photosId === a.id ? null : a.id)}>
+                                            {photosId === a.id ? "Hide photos" : "Photos"}
+                                        </button>
+                                        <button className="btn-link" type="button"
                                                 onClick={() => { setEditingId(a.id); setAdding(false); setConfirmingId(null); }}>
                                             Edit
                                         </button>
@@ -197,6 +203,7 @@ export default function ManageApartmentsPage() {
                                             </span>
                                         )}
                                     </div>
+                                    {photosId === a.id && <ApartmentPhotos apartmentId={a.id} />}
                                     {expandedId === a.id && (
                                         <div className="section-gap">
                                             {residents === null && <Notice>Loading...</Notice>}
