@@ -6,9 +6,6 @@ export const createMaintenance = (token, data) =>
 export const getMyMaintenance = (token) =>
     request("/maintenance/my", { token });
 
-export const getMaintenance = (token, id) =>
-    request(`/maintenance/${id}`, { token });
-
 export const getOpenMaintenance = (token) =>
     request("/maintenance/open", { token });
 
