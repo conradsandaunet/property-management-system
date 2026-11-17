@@ -20,7 +20,7 @@ public class ResidentServiceApplication {
     // covers both running from inside the module and from the multi-module root
     // (e.g. IntelliJ's default run configuration working directory vs. mvn -pl).
     private static void loadDotenv() {
-        for (String dir : new String[]{".", "resident-service"}) {
+        for (String dir : new String[]{"resident-service", "."}) {
             if (new File(dir, ".env").isFile()) {
                 Dotenv dotenv = Dotenv.configure().directory(dir).ignoreIfMissing().load();
                 dotenv.entries().forEach(entry -> {

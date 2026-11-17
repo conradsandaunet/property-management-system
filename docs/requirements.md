@@ -59,4 +59,4 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 
 ### Board / Property Manager
 - [x] 🔴 As a board member, I want to see all reservations for a given resource, so that I have an overview of its usage.
-- [ ] 🟡 As a board member, I want to block a resource (e.g. set the common room to "MAINTENANCE" for a period), so that residents cannot book it while it's unavailable.
+- [x] 🟡 As a board member, I want to block a resource (e.g. set the common room to "MAINTENANCE" for a period), so that residents cannot book it while it's unavailable.
