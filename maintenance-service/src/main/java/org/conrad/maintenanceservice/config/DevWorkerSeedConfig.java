@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
 import java.util.Set;
 
 @Component
+@Order(1)
 public class DevWorkerSeedConfig implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DevWorkerSeedConfig.class);

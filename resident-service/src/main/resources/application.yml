@@ -46,6 +46,9 @@ app:
     expiration-minutes: 60
   seed:
     board-password: ${BOARD_SEED_PASSWORD}
+    # Demo apartments/residents and the other services' demo data (set SEED_DEMO_DATA=false to skip).
+    demo-data: ${SEED_DEMO_DATA:true}
+    resident-password: ${RESIDENT_SEED_PASSWORD:demo-resident-pw}
   kafka:
     topics:
       maintenance-completed: maintenance.completed
