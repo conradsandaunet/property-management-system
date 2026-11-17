@@ -2,7 +2,7 @@
 
 Status: DONE = ferdig, PARTIAL = delvis eller må verifiseres, TODO = ikke gjort.
 
-Sist oppdatert etter Kafka-event, arbeider-flyten, Consul-registrering. Hold denne oppdatert når noe endres.
+Sist oppdatert etter lastbalansering via Consul, sentral konfigurasjon (Consul KV), demodata, frontend for billing og reservation og varsling fra Kafka-eventet. Hold denne oppdatert når noe endres.
 
 ## Mikrotjeneste-krav
 
@@ -16,9 +16,8 @@ Sist oppdatert etter Kafka-event, arbeider-flyten, Consul-registrering. Hold den
 - [x] **3. Minst to tjenester med asynkron kommunikasjon (event-drevet)** (DONE)
   Kafka (KRaft-broker i compose). maintenance publiserer `MaintenanceCompleted` på topicen
   `maintenance.completed` (etter at databaseendringen er lagret), og resident-service konsumerer den.
-  - [ ] Gjør effekten synlig: consumeren logger i dag bare "Would notify". Lagre en varsling i
-    resident-service og vis den for beboeren i frontend, så sensor ser hendelsen virke
-  - [ ] Dokumentere hendelsesflyten i arkitekturen (topic, hendelsens felt, hvem som produserer og konsumerer)
+  - [x] Effekten er synlig: resident-service lagrer en varsling, og beboeren ser den i frontend
+  - [x] Hendelsesflyten er dokumentert i `docs/architecture.md` (sekvensdiagram, topic, felt, produsent og konsument)
   - [ ] Nevne i refleksjonen: hendelsen kan gå tapt hvis Kafka er nede akkurat ved publisering (ingen outbox/retry)
 
 ### Kreves for D
@@ -28,8 +27,9 @@ Sist oppdatert etter Kafka-event, arbeider-flyten, Consul-registrering. Hold den
   Sjekk at billing, maintenance og reservation følger samme mønster, og at ansvaret til hver er tydelig.
   Tjenestene har lite tester utenom resident (maintenance har statustester, de andre bare `contextLoads`).
 - [ ] **5. Arkitekturen stemmer med dokumentasjonen** (PARTIAL)
-  `README.md` har tjenestetabell og gateway-seksjon, men det mangler et arkitekturdokument
-  (alle tjenester, ansvar, struktur, hvem som kaller hvem, sync/async, porter, databaser, Consul, Kafka).
+  `docs/architecture.md` beskriver event-flyten (Kafka). `README.md` har tjenestetabell og gateway-seksjon.
+  Det mangler fortsatt en samlet oversikt (alle tjenester, ansvar, struktur, hvem som kaller hvem,
+  sync/async, porter, databaser, Consul).
   - [ ] Arkitekturdiagram (nettleser -> nginx -> gateway -> tjenester -> databaser, + Kafka og Consul)
   - [ ] Beskrive hver tjeneste: ansvar, endepunkter, database, avhengigheter
   - [ ] Gå gjennom at README/docs stemmer med koden når alt er ferdig
@@ -40,14 +40,12 @@ Sist oppdatert etter Kafka-event, arbeider-flyten, Consul-registrering. Hold den
 
 - [x] **7. Én inngang (gateway) som ruter kall** (DONE)
   Spring Cloud Gateway (Web MVC) på :8080. Ruting, CORS, JWT-validering, rate limiting på login.
-- [ ] **8. Gateway som i tillegg gjør lastbalansering** (TODO)
-  Grunnlaget er lagt: alle tjenester og gatewayen registrerer seg i Consul. Gatewayen bruker
-  fortsatt faste `*_URL`-variabler.
-  - [ ] Få gatewayen til å rute via Consul (`lb://<tjenestenavn>`). Støtten i Web MVC-varianten er
-    ikke bekreftet, så prøv med én rute først (reservation)
-  - [ ] Kjøre flere instanser av en tjeneste (`docker compose up --scale ...` / `replicas`)
-  - [ ] Vise det i en demo (kall flere ganger, se ulike instanser svare)
-  - Se punkt 12 for hindringene.
+- [x] **8. Gateway som i tillegg gjør lastbalansering** (DONE)
+  Alle fire rutene bruker `lb://<tjenestenavn>` (Spring Cloud LoadBalancer + Consul), og gatewayen
+  har ingen faste tjeneste-URL-er. Helsesjekkene i Consul brukes (`query-passing`), og cachen er satt
+  til 5 s, så en død instans slutter å få trafikk etter noen sekunder. Testet med
+  `docker compose up -d --scale reservation-service=2`: to instanser i Consul, trafikken fordeles.
+  - [ ] Beskrive demoen i README (kommando, hvor man ser instansene i Consul, `docker compose logs -f reservation-service`, stoppe en instans)
 
 ### Kreves for B
 
@@ -67,17 +65,22 @@ Sist oppdatert etter Kafka-event, arbeider-flyten, Consul-registrering. Hold den
 
 ### Kreves for A
 
-- [ ] **11. Sentral konfigurasjon for tjenestene** (TODO)
-  I dag: miljøvariabler per tjeneste via compose og rot-`.env`. Consul brukes foreløpig bare til
-  registrering og helse, ikke til konfigurasjon.
-  - [ ] Legge inn felles konfig i Consul KV (importer-container som laster YAML ved oppstart, slik læreren gjør)
-  - [ ] Få tjenestene til å lese den (`spring-cloud-starter-consul-config`, `spring.config.import=optional:consul:`)
-  - [ ] Dokumentere hva som ligger i Consul og hva som fortsatt er miljøvariabler (hemmeligheter bør ikke ligge i KV i klartekst)
-- [ ] **12. Kan deployes med flere instanser av relevante tjenester** (TODO)
-  Ikke testet. Kjente hindringer:
-  - [ ] Seeding ved oppstart (board-bruker, demo-arbeidere, demo-faktura) er ikke trygg med flere kopier som starter samtidig
-  - [ ] Rate limiting på login er in-memory per gateway-instans (hold gatewayen på én instans)
-  - [ ] Velge en tjeneste å demonstrere med (reservation er enklest), fjerne `container_name`/port-konflikter, vise at to instanser deler last
+- [x] **11. Sentral konfigurasjon for tjenestene** (DONE)
+  Consul KV. Filene i `consul-config/` (`application.yml` felles, `gateway.yml` for gatewayen) lastes
+  inn av `consul-config`-containeren ved oppstart (`config/<navn>/data`), og alle fem tjenestene leser dem via
+  `spring.config.import: "optional:consul:"`. I Consul ligger JWT-utløpstid, Kafka-topicnavn, demodata-flagg
+  og rate limit på login. Hemmeligheter (`JWT_SECRET`, databasepassord) ligger bevisst i `.env`, ikke i KV.
+  Endringer i KV krever restart av tjenesten. Verifisert på gatewayen (verdi fra Consul overstyrte fallback).
+  - [ ] Dokumentere i README/arkitektur: hva som ligger i Consul, hva som er miljøvariabler og hvorfor
+  - [ ] Verifisere i hele compose-stakken at alle tjenester kommer opp `healthy` med config-importen
+- [ ] **12. Kan deployes med flere instanser av relevante tjenester** (PARTIAL)
+  reservation-service kjører med flere instanser (`--scale`), og dobbeltbooking er sikret med en
+  exclusion constraint i databasen (`V3`, med test som booker samme tid fra åtte tråder).
+  - [x] Velge en tjeneste å demonstrere med: reservation. Ingen `container_name`/port-konflikter, to instanser deler last
+  - [x] Samtidige bookinger er trygge på tvers av instanser (constraint + 409)
+  - [ ] Demodata-seeding sjekker `count() == 0` per tjeneste, så to kopier som starter samtidig kan seede dobbelt (gjelder reservation-ressursene). Start én instans først og skaler etterpå, eller gjør seedingen idempotent
+  - [ ] Rate limiting på login er in-memory per gateway-instans (hold gatewayen på én instans, nevn det i dokumentasjonen)
+  - [ ] Beskrive hvilke tjenester som er laget for skalering (reservation) og hvilke som ikke er (billing/maintenance/resident har seeding og in-memory-tilstand)
 
 ## Oppgavespesifikke krav
 
@@ -92,17 +95,20 @@ Prioritet i parentes: must-have, should-have, nice-to-have.
   - [ ] Should-have: kommentarer (beboer og arbeider), board overstyrer prioritet/status
 - [ ] **Billing:** beboer ser og betaler faktura og ser historikk, faktura-PDF finnes. Backend har generering, betalingsoversikt og "marker betalt" for board (`/generate`, `/overview`, `/mark-paid`)
   - [ ] Verifiser at de tre board-historiene fungerer og kryss dem av i `requirements.md`
-  - [ ] Frontend mangler helt for billing (ingen sider for fakturaer)
+  - [x] Frontend finnes (`InvoicesPage` for beboer, `BoardInvoicesPage` for board)
 - [ ] **Reservation:** backend har tilgjengelighet, booking, avbestilling og blokkering av ressurs (`/block`)
   - [ ] Verifiser "blokker ressurs" og kryss av i `requirements.md`
-  - [ ] Frontend mangler helt for reservation
+  - [x] Frontend finnes (`BookPage`, `MyReservationsPage`, `BoardResourcesPage`)
+  - [x] Dobbeltbooking sikret i databasen
 
 ### Frontend-dekning (sensor skal kunne se funksjonaliteten)
 
 - [x] Resident: innlogging, husstand, kontaktinfo, oversikt, beboere, leiligheter
 - [x] Maintenance: beboer, board og arbeider
-- [ ] Billing (beboer og board)
-- [ ] Reservation (beboer og board)
+- [x] Billing (beboer og board)
+- [x] Reservation (beboer og board)
+- [x] Varsler fra Kafka-eventet (beboer)
+- [ ] Gå gjennom at billing- og reservation-sidene fungerer mot seedede data (som board og beboer)
 - [ ] Beslutte hva som kuttes (nice-to-have: bilder av leiligheter, flere bygninger, fullførte oppdrag for arbeider) og begrunne i refleksjonsdokumentet
 
 ### Dokumenter som skal leveres
@@ -113,7 +119,9 @@ Prioritet i parentes: must-have, should-have, nice-to-have.
   - [ ] Arbeidsmengde/prosess (krav, prioritering, aktiviteter rundt prosjektet)
 - [ ] **README.md** der sensor kan se all funksjonalitet og kjøre prosjektet:
   - [ ] Hvordan starte alt (`.env`, `docker compose up --build`) og åpne appen
-  - [ ] Innloggingsbrukere for demo (board, beboer og arbeider), inkludert seed-data
+  - [ ] Innloggingsbrukere for demo (board, beboer og arbeider), inkludert seed-data. Demodata finnes nå
+    (6 leiligheter, 8 beboere, fakturaer, vedlikeholdssaker, ressurser og bookinger, slås av med `SEED_DEMO_DATA=false` / `app.seed.demo-data`),
+    men README beskriver fortsatt bare den gamle demofakturaen. Demobeboere bruker passordet `demo-resident-pw` (`RESIDENT_SEED_PASSWORD`)
   - [ ] Gjennomgang av funksjonaliteten per tjeneste og rolle
   - [ ] Hvordan kjøre testene, og hvor man ser Consul og Kafka
 - [ ] Alt som trengs for å bygge og kjøre er med: compose-fil, `.env.example`, seed-data, oppsettskript
@@ -128,8 +136,9 @@ Prioritet i parentes: must-have, should-have, nice-to-have.
 
 ## Foreslått rekkefølge
 
-1. **Gatewayen via Consul og flere instanser** (punkt 8 og 12): C og A, bygger på Consul-registreringen som nå er på plass.
-2. **Sentral konfigurasjon i Consul** (punkt 11): A, samme integrasjon.
-3. **Arkitekturdokumentasjon** (punkt 4-5): D-krav, kan gjøres parallelt.
-4. **Frontend for billing og reservation**, og synlig varsling fra Kafka-eventet.
-5. **Rydde `requirements.md`**, refleksjonsdokument og README-gjennomgang.
+1. **Verifisere hele stakken** etter alle endringene: `docker compose up --build` fra ren tilstand, alle containere `healthy`, Consul viser tjenester og konfig.
+2. **Arkitekturdokumentasjon** (punkt 4-5): én samlet oversikt over tjenester, kall, Consul og porter i `docs/architecture.md`.
+3. **README**: oppstart, demobrukere, hvor man ser Consul/Kafka, `--scale`-demo, hva som ligger i Consul.
+4. **Rydde `requirements.md`**: verifiser og kryss av worker-, billing-board- og reservation-blokker-historiene.
+5. **Refleksjonsdokument** (utelatte historier, ekstra funksjonalitet, tapt Kafka-event ved nedetid, in-memory rate limit, arbeidsprosess).
+6. Kjøre-og-levere-sjekken i en ny klone.
