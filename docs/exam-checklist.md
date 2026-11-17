@@ -45,7 +45,7 @@ Sist oppdatert etter lastbalansering via Consul, sentral konfigurasjon (Consul K
   har ingen faste tjeneste-URL-er. Helsesjekkene i Consul brukes (`query-passing`), og cachen er satt
   til 5 s, så en død instans slutter å få trafikk etter noen sekunder. Testet med
   `docker compose up -d --scale reservation-service=2`: to instanser i Consul, trafikken fordeles.
-  - [ ] Beskrive demoen i README (kommando, hvor man ser instansene i Consul, `docker compose logs -f reservation-service`, stoppe en instans)
+  - [x] Demoen er beskrevet i README (kommando, Consul-UI, `docker compose logs -f reservation-service`, stoppe en instans)
 
 ### Kreves for B
 
@@ -71,14 +71,14 @@ Sist oppdatert etter lastbalansering via Consul, sentral konfigurasjon (Consul K
   `spring.config.import: "optional:consul:"`. I Consul ligger JWT-utløpstid, Kafka-topicnavn, demodata-flagg
   og rate limit på login. Hemmeligheter (`JWT_SECRET`, databasepassord) ligger bevisst i `.env`, ikke i KV.
   Endringer i KV krever restart av tjenesten. Verifisert på gatewayen (verdi fra Consul overstyrte fallback).
-  - [ ] Dokumentere i README/arkitektur: hva som ligger i Consul, hva som er miljøvariabler og hvorfor
-  - [ ] Verifisere i hele compose-stakken at alle tjenester kommer opp `healthy` med config-importen
+  - [x] Dokumentert i README: hva som ligger i Consul, hva som er miljøvariabler og hvorfor
+  - [x] Verifisert i hele compose-stakken (alle tjenester `healthy`)
 - [ ] **12. Kan deployes med flere instanser av relevante tjenester** (PARTIAL)
   reservation-service kjører med flere instanser (`--scale`), og dobbeltbooking er sikret med en
   exclusion constraint i databasen (`V3`, med test som booker samme tid fra åtte tråder).
   - [x] Velge en tjeneste å demonstrere med: reservation. Ingen `container_name`/port-konflikter, to instanser deler last
   - [x] Samtidige bookinger er trygge på tvers av instanser (constraint + 409)
-  - [ ] Demodata-seeding sjekker `count() == 0` per tjeneste, så to kopier som starter samtidig kan seede dobbelt (gjelder reservation-ressursene). Start én instans først og skaler etterpå, eller gjør seedingen idempotent
+  - [x] Demodata-seeding i reservation tåler flere instanser som starter samtidig (Postgres advisory lock, med test). Seeding i resident/billing/maintenance er ikke laget for flere kopier
   - [ ] Rate limiting på login er in-memory per gateway-instans (hold gatewayen på én instans, nevn det i dokumentasjonen)
   - [ ] Beskrive hvilke tjenester som er laget for skalering (reservation) og hvilke som ikke er (billing/maintenance/resident har seeding og in-memory-tilstand)
 
