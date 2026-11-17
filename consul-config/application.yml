@@ -1,0 +1,13 @@
+# Shared settings for every service. Loaded into Consul KV at config/application/data by the
+# consul-config container, and read by the services at startup (spring.config.import).
+# Edit here (or in the Consul UI, http://localhost:8500) and restart a service to pick it up.
+# Secrets (JWT_SECRET, database passwords) deliberately stay in .env, not here.
+app:
+  jwt:
+    expiration-minutes: 60
+  kafka:
+    topics:
+      maintenance-completed: maintenance.completed
+  seed:
+    # Demo apartments, residents, invoices, maintenance requests and bookings on first start.
+    demo-data: true

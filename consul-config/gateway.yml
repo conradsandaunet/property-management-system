@@ -1,0 +1,6 @@
+# Gateway-only settings, loaded into Consul KV at config/gateway/data.
+app:
+  rate-limit:
+    login:
+      attempts: 5
+      period-seconds: 60

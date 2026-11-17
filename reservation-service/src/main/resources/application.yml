@@ -4,11 +4,18 @@ server:
 spring:
   application:
     name: reservation-service
+  config:
+    # Shared and per-service settings live in Consul KV (config/application and config/<name>).
+    # optional: the service still starts, on its local defaults, when Consul is unreachable.
+    import: "optional:consul:"
 
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
+      config:
+        # One YAML document per key: config/application/data (shared) and config/<name>/data.
+        format: YAML
       discovery:
         prefer-ip-address: true
         instance-id: ${spring.application.name}-${random.value}
@@ -36,9 +43,6 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
-  seed:
-    # Demo data on first start (set SEED_DEMO_DATA=false to skip).
-    demo-data: ${SEED_DEMO_DATA:true}
 
 management:
   endpoints:

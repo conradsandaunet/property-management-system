@@ -16,7 +16,7 @@ public class MaintenanceCompletedListener {
         this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "${app.kafka.topics.maintenance-completed}")
+    @KafkaListener(topics = "${app.kafka.topics.maintenance-completed:maintenance.completed}")
     public void onMessage(String payload) {
         MaintenanceCompleted event = objectMapper.readValue(payload, MaintenanceCompleted.class);
         notificationService.notifyMaintenanceCompleted(event.residentId(), event.requestId());

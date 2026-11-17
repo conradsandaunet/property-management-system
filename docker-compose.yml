@@ -114,6 +114,27 @@ services:
       retries: 10
       start_period: 5s
 
+  # Loads the files in ./consul-config into Consul KV (config/<name>/data) and exits. Consul runs
+  # in dev mode (in memory), so this has to run on every start; the services wait for it.
+  consul-config:
+    image: hashicorp/consul:2.0.0
+    container_name: consul-config
+    restart: "no"
+    depends_on:
+      consul:
+        condition: service_healthy
+    volumes:
+      - ./consul-config:/config:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        for f in /config/*.yml; do
+          name=$$(basename "$$f" .yml)
+          consul kv put -http-addr=http://consul:8500 "config/$$name/data" @"$$f" > /dev/null
+          echo "Loaded config/$$name/data"
+        done
+
   resident-service:
     <<: *service
     build:
@@ -130,6 +151,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+      consul-config:
+        condition: service_completed_successfully
       resident-db:
         condition: service_healthy
       kafka:
@@ -156,6 +179,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+      consul-config:
+        condition: service_completed_successfully
       billing-db:
         condition: service_healthy
       resident-service:
@@ -183,6 +208,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+      consul-config:
+        condition: service_completed_successfully
       maintenance-db:
         condition: service_healthy
       kafka:
@@ -208,6 +235,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+      consul-config:
+        condition: service_completed_successfully
       reservation-db:
         condition: service_healthy
     healthcheck:
@@ -231,6 +260,8 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+      consul-config:
+        condition: service_completed_successfully
       resident-service:
         condition: service_healthy
       billing-service:
