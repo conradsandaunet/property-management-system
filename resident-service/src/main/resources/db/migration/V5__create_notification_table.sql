@@ -7,7 +7,7 @@ CREATE TABLE notification (
     message VARCHAR(500) NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_notification_resident FOREIGN KEY (resident_id) REFERENCES resident_id (id),
+    CONSTRAINT fk_notification_resident FOREIGN KEY (resident_id) REFERENCES resident (id),
     CONSTRAINT uq_notification_resident_request UNIQUE (resident_id, request_id)
 );
 
