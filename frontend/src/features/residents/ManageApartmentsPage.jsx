@@ -13,6 +13,7 @@ import {
     createResident,
     getApartmentResidents,
     getApartments,
+    getBuildings,
     removeApartment,
     searchResidents,
     updateApartment,
@@ -23,6 +24,7 @@ export default function ManageApartmentsPage() {
     const { token } = useAuth();
     const { data: apartments, error: loadError, loading, reload } =
         useAsync(() => getApartments(token), [token]);
+    const { data: buildings } = useAsync(() => getBuildings(token), [token]);
     const [adding, setAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [confirmingId, setConfirmingId] = useState(null);
@@ -130,9 +132,10 @@ export default function ManageApartmentsPage() {
 
             <div className="section-gap">
                 {adding ? (
-                    <ApartmentForm mode="create" onSubmit={handleCreate} onCancel={() => setAdding(false)} />
+                    <ApartmentForm mode="create" buildings={buildings ?? []} onSubmit={handleCreate}
+                                   onCancel={() => setAdding(false)} />
                 ) : (
-                    <button className="btn" type="button"
+                    <button className="btn" type="button" disabled={!buildings || buildings.length === 0}
                             onClick={() => { setAdding(true); setEditingId(null); }}>
                         Add apartment
                     </button>
@@ -153,6 +156,7 @@ export default function ManageApartmentsPage() {
                                 <ApartmentForm
                                     mode="edit"
                                     initial={a}
+                                    buildings={buildings ?? []}
                                     onSubmit={(values) => handleUpdate(a.id, values)}
                                     onCancel={() => setEditingId(null)}
                                 />

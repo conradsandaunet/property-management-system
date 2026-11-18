@@ -10,6 +10,7 @@ import ContactPage from "../features/residents/ContactPage";
 import OverviewPage from "../features/residents/OverviewPage";
 import ManageResidentsPage from "../features/residents/ManageResidentsPage";
 import ManageApartmentsPage from "../features/residents/ManageApartmentsPage";
+import ManageBuildingsPage from "../features/residents/ManageBuildingsPage";
 import MyRequestPage from "../features/maintenance/MyRequestPage";
 import NewRequestPage from "../features/maintenance/NewRequestPage";
 import OpenRequestPage from "../features/maintenance/OpenRequestPage.jsx";
@@ -55,6 +56,7 @@ export default function App() {
                         <Route path="board/overview" element={<OverviewPage />} />
                         <Route path="board/residents" element={<ManageResidentsPage />} />
                         <Route path="board/apartments" element={<ManageApartmentsPage />} />
+                        <Route path="board/buildings" element={<ManageBuildingsPage />} />
                         <Route path="board/maintenance" element={<OpenRequestPage />} />
                         <Route path="board/invoices" element={<BoardInvoicesPage />} />
                         <Route path="board/resources" element={<BoardResourcesPage />} />

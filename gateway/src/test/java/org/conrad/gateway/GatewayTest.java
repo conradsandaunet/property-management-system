@@ -152,6 +152,7 @@ class GatewayTest {
                 "/api/auth/me", new String[]{"resident", "/auth/me"},
                 "/api/residents/search", new String[]{"resident", "/residents/search"},
                 "/api/apartments/1", new String[]{"resident", "/apartments/1"},
+                "/api/buildings", new String[]{"resident", "/buildings"},
                 "/api/invoices/current", new String[]{"billing", "/invoices/current"},
                 "/api/maintenance/my", new String[]{"maintenance", "/maintenance/my"},
                 "/api/workers", new String[]{"maintenance", "/workers"},

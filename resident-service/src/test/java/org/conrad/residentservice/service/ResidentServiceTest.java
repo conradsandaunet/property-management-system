@@ -49,8 +49,8 @@ class ResidentServiceTest {
 
     @BeforeEach
     void setUp() {
-        apartment1 = Apartment.builder().id(10L).apartmentNumber("A1").floor(1).buildingName("Main").build();
-        apartment2 = Apartment.builder().id(20L).apartmentNumber("A2").floor(2).buildingName("Main").build();
+        apartment1 = Apartment.builder().id(10L).apartmentNumber("A1").floor(1).building(org.conrad.residentservice.model.Building.builder().id(1L).name("Main").build()).build();
+        apartment2 = Apartment.builder().id(20L).apartmentNumber("A2").floor(2).building(org.conrad.residentservice.model.Building.builder().id(1L).name("Main").build()).build();
     }
 
     private Resident resident(Long id, String first, String last, String email, boolean manager, boolean active, Apartment apartment) {

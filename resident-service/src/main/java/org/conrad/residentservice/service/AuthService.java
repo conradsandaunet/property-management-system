@@ -64,7 +64,7 @@ public class AuthService {
                 apartment.getId(),
                 apartment.getApartmentNumber(),
                 apartment.getFloor(),
-                apartment.getBuildingName()
+                apartment.getBuilding().getName()
         );
     }
 }

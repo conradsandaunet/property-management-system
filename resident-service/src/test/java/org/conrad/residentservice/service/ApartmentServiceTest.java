@@ -6,6 +6,7 @@ import org.conrad.residentservice.dto.ApartmentUpdateRequest;
 import org.conrad.residentservice.dto.ResidentSummaryResponse;
 import org.conrad.residentservice.dto.BuildingOverviewResponse;
 import org.conrad.residentservice.model.Apartment;
+import org.conrad.residentservice.model.Building;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
 import org.junit.jupiter.api.Test;
@@ -34,9 +35,14 @@ class ApartmentServiceTest {
     private ApartmentRepository apartmentRepository;
     @Mock
     private ResidentService residentService;
+    @Mock
+    private BuildingService buildingService;
 
     @InjectMocks
     private ApartmentService apartmentService;
+
+    private static final Building MAIN = Building.builder().id(1L).name("Main").build();
+    private static final Building ANNEX = Building.builder().id(2L).name("Annex").build();
 
     private Resident resident(Long id, boolean active) {
         return Resident.builder().id(id).firstName("R" + id).lastName("X").email(id + "@x.no")
@@ -70,7 +76,7 @@ class ApartmentServiceTest {
 
     @Test
     void getAll_countsOnlyActiveResidents() {
-        Apartment apartment = Apartment.builder().id(10L).apartmentNumber("A1").floor(1).buildingName("Main")
+        Apartment apartment = Apartment.builder().id(10L).apartmentNumber("A1").floor(1).building(MAIN)
                 .residents(new ArrayList<>(List.of(resident(1L, true), resident(2L, false), resident(3L, true))))
                 .build();
         when(apartmentRepository.findAll()).thenReturn(List.of(apartment));
@@ -88,7 +94,7 @@ class ApartmentServiceTest {
 
     @Test
     void getAll_apartmentWithoutResidents_hasZeroResidentCount() {
-        Apartment vacant = Apartment.builder().id(11L).apartmentNumber("A2").floor(1).buildingName("Main").build();
+        Apartment vacant = Apartment.builder().id(11L).apartmentNumber("A2").floor(1).building(MAIN).build();
         when(apartmentRepository.findAll()).thenReturn(List.of(vacant));
 
         assertThat(apartmentService.getAll()).singleElement()
@@ -121,13 +127,15 @@ class ApartmentServiceTest {
 
     @Test
     void create_savesTrimmedApartment() {
-        when(apartmentRepository.existsByBuildingNameIgnoreCaseAndApartmentNumberIgnoreCase("Main", "A1"))
+        when(buildingService.require(1L)).thenReturn(MAIN);
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(1L, "A1"))
                 .thenReturn(false);
 
-        ApartmentResponse response = apartmentService.create("1", new ApartmentCreateRequest(" A1 ", 2, " Main "));
+        ApartmentResponse response = apartmentService.create("1", new ApartmentCreateRequest(" A1 ", 2, 1L));
 
         assertThat(response.apartmentNumber()).isEqualTo("A1");
         assertThat(response.buildingName()).isEqualTo("Main");
+        assertThat(response.buildingId()).isEqualTo(1L);
         assertThat(response.floor()).isEqualTo(2);
         assertThat(response.residentCount()).isZero();
         verify(apartmentRepository).save(any(Apartment.class));
@@ -135,21 +143,43 @@ class ApartmentServiceTest {
 
     @Test
     void create_duplicateNumberInSameBuilding_isConflict() {
-        when(apartmentRepository.existsByBuildingNameIgnoreCaseAndApartmentNumberIgnoreCase("Main", "A1"))
+        when(buildingService.require(1L)).thenReturn(MAIN);
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(1L, "A1"))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> apartmentService.create("1", new ApartmentCreateRequest("A1", 1, "Main")))
+        assertThatThrownBy(() -> apartmentService.create("1", new ApartmentCreateRequest("A1", 1, 1L)))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         verify(apartmentRepository, never()).save(any());
     }
 
     @Test
+    void create_sameNumberInAnotherBuilding_isAllowed() {
+        when(buildingService.require(2L)).thenReturn(ANNEX);
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(2L, "A1")).thenReturn(false);
+
+        ApartmentResponse response = apartmentService.create("1", new ApartmentCreateRequest("A1", 1, 2L));
+
+        assertThat(response.buildingName()).isEqualTo("Annex");
+    }
+
+    @Test
+    void create_unknownBuilding_isNotFound() {
+        when(buildingService.require(9L))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Building not found"));
+
+        assertThatThrownBy(() -> apartmentService.create("1", new ApartmentCreateRequest("A1", 1, 9L)))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+        verify(apartmentRepository, never()).save(any());
+    }
+
+    @Test
     void create_rejectsBlankOrTooLongOrMissingFields() {
-        assertBadRequest(new ApartmentCreateRequest("  ", 1, "Main"));
+        assertBadRequest(new ApartmentCreateRequest("  ", 1, 1L));
         assertBadRequest(new ApartmentCreateRequest("A1", 1, null));
-        assertBadRequest(new ApartmentCreateRequest("A1", null, "Main"));
-        assertBadRequest(new ApartmentCreateRequest("12345678901", 1, "Main"));
+        assertBadRequest(new ApartmentCreateRequest("A1", null, 1L));
+        assertBadRequest(new ApartmentCreateRequest("12345678901", 1, 1L));
         verify(apartmentRepository, never()).save(any());
     }
 
@@ -162,7 +192,7 @@ class ApartmentServiceTest {
     // ---- update ----
 
     private Apartment existing() {
-        return Apartment.builder().id(10L).apartmentNumber("A1").floor(1).buildingName("Main").build();
+        return Apartment.builder().id(10L).apartmentNumber("A1").floor(1).building(MAIN).build();
     }
 
     @Test
@@ -176,13 +206,37 @@ class ApartmentServiceTest {
         assertThat(response.apartmentNumber()).isEqualTo("A1");
         assertThat(response.buildingName()).isEqualTo("Main");
         verify(apartmentRepository, never())
-                .existsByBuildingNameIgnoreCaseAndApartmentNumberIgnoreCase(any(), any());
+                .existsByBuildingIdAndApartmentNumberIgnoreCase(any(), any());
+    }
+
+    @Test
+    void update_movesApartmentToAnotherBuilding() {
+        Apartment apartment = existing();
+        when(apartmentRepository.findById(10L)).thenReturn(Optional.of(apartment));
+        when(buildingService.require(2L)).thenReturn(ANNEX);
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(2L, "A1")).thenReturn(false);
+
+        ApartmentResponse response = apartmentService.update("1", 10L, new ApartmentUpdateRequest(null, null, 2L));
+
+        assertThat(response.buildingName()).isEqualTo("Annex");
+        assertThat(apartment.getBuilding()).isSameAs(ANNEX);
+    }
+
+    @Test
+    void update_moveToBuildingWhereTheNumberExists_isConflict() {
+        when(apartmentRepository.findById(10L)).thenReturn(Optional.of(existing()));
+        when(buildingService.require(2L)).thenReturn(ANNEX);
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(2L, "A1")).thenReturn(true);
+
+        assertThatThrownBy(() -> apartmentService.update("1", 10L, new ApartmentUpdateRequest(null, null, 2L)))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
     }
 
     @Test
     void update_renameToExistingApartment_isConflict() {
         when(apartmentRepository.findById(10L)).thenReturn(Optional.of(existing()));
-        when(apartmentRepository.existsByBuildingNameIgnoreCaseAndApartmentNumberIgnoreCase("Main", "B2"))
+        when(apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(1L, "B2"))
                 .thenReturn(true);
 
         assertThatThrownBy(() -> apartmentService.update("1", 10L, new ApartmentUpdateRequest("B2", null, null)))

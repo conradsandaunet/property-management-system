@@ -41,8 +41,8 @@ Notes:
 
 ## Demo users and data
 
-On first start every service fills its (empty) database with demo data: 6 apartments in
-"Solsiden Borettslag" (101-302), 8 residents, invoices for last and this month (one overdue),
+On first start every service fills its (empty) database with demo data: 2 buildings
+("Solsiden Borettslag" with 6 apartments 101-302, and "Havneparken" with 2 vacant apartments), 8 residents, invoices for last and this month (one overdue),
 7 maintenance requests in all statuses, 3 workers, 5 resources (3 parking spaces, common room,
 roof terrace), a few upcoming bookings and photos of the first three apartments plus the facade (shown
 under *Apartments -> Photos* for the board). Set `SEED_DEMO_DATA=false` to start with only the
@@ -67,7 +67,9 @@ Ola and Ingrid Hansen share apartment 201, and Sofie and Emil share 301.
 
 **Board member**
 - *Overview*: apartments, occupied/vacant, residents.
-- *Residents* and *Apartments*: add, edit, remove; add or move residents from an apartment;
+- *Buildings*: add, rename and remove buildings (a building with apartments cannot be removed).
+- *Residents* and *Apartments*: add, edit, remove; choose the building per apartment (apartment numbers
+  only have to be unique within a building); add or move residents from an apartment;
   upload and remove photos of an apartment (JPEG, PNG or WebP, up to 5 MB each, max 10; stored in
   the resident database).
 - *Maintenance*: all open requests by priority, assign a worker.
@@ -114,7 +116,7 @@ Gateway routes (the `/api` prefix is stripped):
 
 | Path | Service |
 |---|---|
-| `/api/auth`, `/api/residents`, `/api/apartments`, `/api/notifications` | resident-service |
+| `/api/auth`, `/api/residents`, `/api/apartments`, `/api/buildings`, `/api/notifications` | resident-service |
 | `/api/invoices` | billing-service |
 | `/api/maintenance`, `/api/workers` | maintenance-service |
 | `/api/reservations`, `/api/resources` | reservation-service |

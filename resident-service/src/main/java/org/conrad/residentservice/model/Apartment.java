@@ -26,9 +26,9 @@ public class Apartment {
     @Column(nullable = false)
     private Integer floor;
 
-    @Column(name = "building_name", nullable = false)
-    private String buildingName;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id", nullable = false)
+    private Building building;
 
     @OneToMany(mappedBy = "apartment")
     @Builder.Default
