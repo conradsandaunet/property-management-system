@@ -31,7 +31,7 @@ import java.util.List;
 public class DemoResidentSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoResidentSeed.class);
-    private static final String BUILDING = "Solsiden Borettslag";
+    static final String BUILDING = "Solsiden Borettslag";
 
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;

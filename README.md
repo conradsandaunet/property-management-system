@@ -44,7 +44,8 @@ Notes:
 On first start every service fills its (empty) database with demo data: 6 apartments in
 "Solsiden Borettslag" (101-302), 8 residents, invoices for last and this month (one overdue),
 7 maintenance requests in all statuses, 3 workers, 5 resources (3 parking spaces, common room,
-roof terrace) and a few upcoming bookings. Set `SEED_DEMO_DATA=false` to start with only the
+roof terrace), a few upcoming bookings and photos of the first three apartments plus the facade (shown
+under *Apartments -> Photos* for the board). Set `SEED_DEMO_DATA=false` to start with only the
 board account and the workers.
 
 | Role | Sign in at | Email | Password |
