@@ -36,7 +36,7 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 ### Resident
 - [x] 🔴 As a resident, I want to create a maintenance request with category, location, description, and priority, so that I can report an issue in my apartment.
 - [x] 🔴 As a resident, I want to see the status of my own requests (Submitted → Assigned → In progress → Resolved), so that I know where my case stands.
-- [ ] 🟡 As a resident, I want to add a comment to an open request, so that I can provide more information as it comes up.
+- [x] 🟡 As a resident, I want to add a comment to an open request, so that I can provide more information as it comes up.
 
 ### Board / Property Manager
 - [x] 🔴 As a board member, I want to see all open maintenance requests in the building with priority (🔴🟡🟢), so that I can quickly see what's most urgent.
@@ -44,10 +44,10 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [ ] 🟡 As a board member, I want to manually change the priority or status of a request, so that I can override it when needed.
 
 ### Maintenance Staff
-- [ ] 🔴 As a maintenance worker, I want to see a list of my assigned work orders, so that I know what I need to do today.
-- [ ] 🔴 As a maintenance worker, I want to change the status of a request (Accept → Start work → Complete), so that progress is visible to others.
-- [ ] 🔴 As a maintenance worker, I want the system to publish a `MaintenanceCompleted` event when I complete a request, so that other services can react to it (e.g. notify the resident).
-- [ ] 🟡 As a maintenance worker, I want to add a comment to a request, so that I can document what was done.
+- [x] 🔴 As a maintenance worker, I want to see a list of my assigned work orders, so that I know what I need to do today.
+- [x] 🔴 As a maintenance worker, I want to change the status of a request (Accept → Start work → Complete), so that progress is visible to others.
+- [x] 🔴 As a maintenance worker, I want the system to publish a `MaintenanceCompleted` event when I complete a request, so that other services can react to it (e.g. notify the resident).
+- [x] 🟡 As a maintenance worker, I want to add a comment to a request, so that I can document what was done.
 - [ ] ⚪ As a maintenance worker, I want to see completed work orders.
 
 ## 2.4 Reservation Service
