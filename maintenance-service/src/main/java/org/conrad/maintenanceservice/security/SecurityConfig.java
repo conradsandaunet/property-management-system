@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/maintenance/assigned").hasRole("WORKER")
                         .requestMatchers(HttpMethod.PATCH, "/maintenance/{id}/status").hasRole("WORKER")
                         .requestMatchers(HttpMethod.GET, "/maintenance/{id}").hasRole("RESIDENT")
+                        .requestMatchers(HttpMethod.POST, "/maintenance/{id}/comments").hasAnyRole("RESIDENT", "WORKER")
+                        .requestMatchers(HttpMethod.GET, "/maintenance/{id}/comments").hasAnyRole("RESIDENT", "WORKER", "BOARD")
                         .requestMatchers("/maintenance/**").hasRole("BOARD")
                         .requestMatchers("/workers/**").hasRole("BOARD")
                         .anyRequest().authenticated()
