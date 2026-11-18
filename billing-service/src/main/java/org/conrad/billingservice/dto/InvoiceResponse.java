@@ -2,6 +2,7 @@ package org.conrad.billingservice.dto;
 
 import org.conrad.billingservice.model.Invoice;
 import org.conrad.billingservice.model.InvoiceStatus;
+import org.conrad.billingservice.service.InvoiceDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,7 +15,9 @@ public record InvoiceResponse(
         LocalDate dueDate,
         InvoiceStatus status,
         BigDecimal totalAmount,
-        List<InvoiceLineResponse> lines
+        List<InvoiceLineResponse> lines,
+        String accountNumber,
+        String kid
 ) {
     public static InvoiceResponse from(Invoice invoice) {
         return new InvoiceResponse(
@@ -24,7 +27,9 @@ public record InvoiceResponse(
                 invoice.getDueDate(),
                 invoice.getEffectiveStatus(),
                 invoice.getTotalAmount(),
-                invoice.getLines().stream().map(InvoiceLineResponse::from).toList()
+                invoice.getLines().stream().map(InvoiceLineResponse::from).toList(),
+                InvoiceDefaults.ACCOUNT_NUMBER,
+                InvoiceDefaults.kid(invoice.getId())
         );
     }
 }

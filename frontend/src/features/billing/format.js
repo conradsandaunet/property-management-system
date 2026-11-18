@@ -4,8 +4,8 @@ export const STATUS_LABELS = {
     OVERDUE: "Overdue",
 };
 
-export const STATUS_VARIANT = {
-    PENDING: undefined,
+export const STATUS_TONE = {
+    PENDING: "info",
     PAID: "success",
     OVERDUE: "warning",
 };
@@ -38,10 +38,12 @@ export function formatPeriod(period) {
     return new Date(year, month - 1, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
-// Current month as "YYYY-MM", in local time.
-export function currentPeriod() {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+// Current month as "YYYY-MM", in local time. `offset` moves it, e.g. -1 for last month.
+export function currentPeriod(offset = 0) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + offset);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
 // Saves the PDF through a temporary link. window.open() after an await is often stopped by popup blockers.

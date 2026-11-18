@@ -21,3 +21,9 @@ export const getAssignedMaintenance = (token) =>
 
 export const changeMaintenanceStatus = (token, requestId, status) =>
     request(`/maintenance/${requestId}/status`, { token, method: "PATCH", body: { status } });
+
+export const getComments = (token, requestId) =>
+    request(`/maintenance/${requestId}/comments`, { token });
+
+export const addComment = (token, requestId, text) =>
+    request(`/maintenance/${requestId}/comments`, { token, method: "POST", body: { text } });

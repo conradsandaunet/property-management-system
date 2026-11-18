@@ -12,6 +12,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import org.conrad.billingservice.model.Invoice;
+import org.conrad.billingservice.service.InvoiceDefaults;
 import org.conrad.billingservice.model.InvoiceCategory;
 import org.conrad.billingservice.model.InvoiceLine;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,8 @@ public class InvoicePdfGenerator {
         info.addCell(infoCell("Periode:", invoice.getPeriod()));
         info.addCell(infoCell("Status:", statusText(invoice)));
         info.addCell(infoCell("Forfallsdato:", invoice.getDueDate().format(DATE)));
+        info.addCell(infoCell("Kontonummer:", InvoiceDefaults.ACCOUNT_NUMBER));
+        info.addCell(infoCell("KID:", InvoiceDefaults.kid(invoice.getId())));
         document.add(info);
         document.add(new Paragraph(" "));
 

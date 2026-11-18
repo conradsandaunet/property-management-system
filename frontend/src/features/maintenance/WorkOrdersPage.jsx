@@ -1,131 +1,102 @@
 import { useState } from "react";
-import Badge from "../../components/Badge";
+import { Priority } from "../../components/Indicators";
+import EmptyState from "../../components/EmptyState";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
+import Skeleton from "../../components/Skeleton";
+import { useToast } from "../../components/toastContext";
 import { useAsync } from "../../hooks/useAsync";
 import { useAuth } from "../../auth/useAuth";
 import { changeMaintenanceStatus, getAssignedMaintenance } from "../../api/maintenance";
+import { formatDate } from "../../lib/format";
+import { PRIORITY_RANK, requestTitle } from "./labels";
+import RequestSteps from "./RequestSteps";
+import CommentThread from "./CommentThread";
 
-const STATUS_LABELS = {
-    SUBMITTED: "Submitted",
-    ASSIGNED: "Assigned",
-    IN_PROGRESS: "In progress",
-    RESOLVED: "Resolved",
-};
-
-const STATUS_VARIANT = {
-    ASSIGNED: "info",
-    IN_PROGRESS: "warning",
-    RESOLVED: "success",
-};
-
-const CATEGORY_LABELS = {
-    PLUMBING: "Plumbing",
-    ELECTRICAL: "Electrical",
-    HEATING: "Heating",
-    APPLIANCE: "Appliance",
-    OTHER: "Other",
-};
-
-const PRIORITY_LABELS = {
-    LOW: "Low",
-    MEDIUM: "Medium",
-    HIGH: "High",
-};
-
-const PRIORITY_VARIANT = {
-    HIGH: "warning",
-    MEDIUM: "info",
-    LOW: undefined,
-};
-
-// The only transition a worker can make from each status (same rules as the backend).
+// The only step a worker can take from each status (same rules as the backend).
 const NEXT_STEP = {
-    ASSIGNED: { status: "IN_PROGRESS", label: "Start work" },
-    IN_PROGRESS: { status: "RESOLVED", label: "Mark as done" },
+    ASSIGNED: { status: "IN_PROGRESS", label: "Start work", done: "Work started" },
+    IN_PROGRESS: { status: "RESOLVED", label: "Mark as done", done: "Marked as done. The resident gets a notification." },
 };
 
-function formatDate(iso) {
-    return new Date(iso).toLocaleDateString("en-GB", {
-        day: "numeric", month: "short", year: "numeric",
-    });
-}
+const GROUPS = [
+    { status: "IN_PROGRESS", title: "In progress" },
+    { status: "ASSIGNED", title: "To do" },
+];
 
 export default function WorkOrdersPage() {
-    const { token } = useAuth();
+    const { token, me } = useAuth();
+    const toast = useToast();
     const orders = useAsync(() => getAssignedMaintenance(token), [token]);
-    const [error, setError] = useState("");
     const [savingId, setSavingId] = useState(null);
+    const [openComments, setOpenComments] = useState(null);
 
-    async function handleAdvance(order) {
+    async function advance(order) {
         const step = NEXT_STEP[order.status];
-        if (!step) return;
         setSavingId(order.id);
-        setError("");
         try {
             await changeMaintenanceStatus(token, order.id, step.status);
-            orders.reload();
+            toast(step.done);
         } catch (e) {
-            setError(
-                e.status === 409
-                    ? "That status change isn't allowed. Reloading the list."
-                    : "Couldn't update the status.",
-            );
-            orders.reload();
+            toast(e.status === 409 ? "That change isn't allowed any more" : "Couldn't update the status", { kind: "error" });
         } finally {
             setSavingId(null);
+            orders.reload();
         }
     }
 
+    const sorted = (orders.data ?? []).slice()
+        .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || a.createdAt.localeCompare(b.createdAt));
+
     return (
         <>
-            <PageHeader eyebrow="Maintenance" title="My work orders" />
+            <PageHeader title="Work orders" subtitle={`Requests assigned to ${me.email}, most urgent first.`} />
 
-            {error && <Notice kind="error">{error}</Notice>}
             {orders.error && <Notice kind="error">Couldn't load your work orders.</Notice>}
-            {orders.loading && !orders.data && !orders.error && <Notice>Loading...</Notice>}
-            {orders.data && orders.data.length === 0 && <Notice>No work orders assigned to you.</Notice>}
-
-            {orders.data && orders.data.length > 0 && (
-                <ul className="list list--wide">
-                    {orders.data.map((o) => {
-                        const step = NEXT_STEP[o.status];
-                        return (
-                            <li key={o.id} className="list-item">
-                                <div className="list-item__top">
-                                    <span className="list-item__title">
-                                        {CATEGORY_LABELS[o.category] ?? o.category} · {o.location}
-                                    </span>
-                                    <span className="badges">
-                                        <Badge variant={PRIORITY_VARIANT[o.priority]}>
-                                            {PRIORITY_LABELS[o.priority] ?? o.priority}
-                                        </Badge>
-                                        <Badge variant={STATUS_VARIANT[o.status]}>
-                                            {STATUS_LABELS[o.status] ?? o.status}
-                                        </Badge>
-                                    </span>
-                                </div>
-                                <p>{o.description}</p>
-                                <div className="list-item__meta">
-                                    <span>Reported {formatDate(o.createdAt)}</span>
-                                </div>
-                                {step && (
-                                    <div className="list-item__actions">
-                                        <button
-                                            className="btn"
-                                            type="button"
-                                            disabled={savingId === o.id}
-                                            onClick={() => handleAdvance(o)}
-                                        >
-                                            {step.label}
-                                        </button>
-                                    </div>
-                                )}
-                            </li>
-                        );
-                    })}
-                </ul>
+            {orders.loading && !orders.data && <Skeleton rows={3} />}
+            {orders.data && sorted.length === 0 && (
+                <EmptyState title="Nothing assigned to you">New work orders show up here when the board assigns them.</EmptyState>
             )}
+
+            {GROUPS.map((group) => {
+                const list = sorted.filter((o) => o.status === group.status);
+                if (list.length === 0) return null;
+                return (
+                    <section key={group.status} className="section">
+                        <div className="section__head">
+                            <h2 className="section__title">{group.title} <span className="muted">({list.length})</span></h2>
+                        </div>
+                        <div className="grid" style={{ gridTemplateColumns: "1fr" }}>
+                            {list.map((o) => {
+                                const step = NEXT_STEP[o.status];
+                                return (
+                                    <article key={o.id} className="card">
+                                        <div className="section__head" style={{ marginBottom: 4 }}>
+                                            <h3 className="item__title">{requestTitle(o)}</h3>
+                                            <Priority priority={o.priority} suffix=" priority" />
+                                        </div>
+                                        <p>{o.description}</p>
+                                        <p className="small muted" style={{ marginTop: 6 }}>Reported {formatDate(o.createdAt)}</p>
+                                        <RequestSteps status={o.status} />
+                                        <div className="form-actions" style={{ marginTop: 14 }}>
+                                            {step && (
+                                                <button className="btn" type="button" disabled={savingId === o.id} onClick={() => advance(o)}>
+                                                    {savingId === o.id ? "Saving…" : step.label}
+                                                </button>
+                                            )}
+                                            <button type="button" className="btn btn--ghost" aria-expanded={openComments === o.id}
+                                                    onClick={() => setOpenComments(openComments === o.id ? null : o.id)}>
+                                                {openComments === o.id ? "Hide comments" : "Comments"}
+                                            </button>
+                                        </div>
+                                        {openComments === o.id && <CommentThread requestId={o.id} viewer="worker" canWrite />}
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+            })}
         </>
     );
 }

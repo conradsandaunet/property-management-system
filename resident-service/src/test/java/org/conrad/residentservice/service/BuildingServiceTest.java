@@ -29,6 +29,8 @@ class BuildingServiceTest {
 
     @Mock
     private BuildingRepository buildingRepository;
+    @Mock
+    private org.conrad.residentservice.repository.BuildingFacadeRepository facadeRepository;
 
     @InjectMocks
     private BuildingService service;
@@ -68,7 +70,7 @@ class BuildingServiceTest {
 
         BuildingResponse response = service.create("1", new BuildingRequest("  Annex "));
 
-        assertThat(response).isEqualTo(new BuildingResponse(5L, "Annex", 0));
+        assertThat(response).isEqualTo(new BuildingResponse(5L, "Annex", 0, false));
     }
 
     @Test

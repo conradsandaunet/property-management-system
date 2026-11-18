@@ -66,3 +66,21 @@ export const removeApartmentPhoto = (token, apartmentId, photoId) =>
 /** Photos need the token, so they can't be a plain <img src>. Returns a Blob. */
 export const getApartmentPhotoBlob = (token, apartmentId, photoId) =>
     requestBlob(`/apartments/${apartmentId}/photos/${photoId}`, { token });
+
+// ---- building facade photo ----
+
+/** Returns a Blob, or null when the building has no facade photo. */
+export const getBuildingFacadeBlob = (token, buildingId) =>
+    requestBlob(`/buildings/${buildingId}/facade`, { token }).catch((e) => {
+        if (e.status === 404) return null;
+        throw e;
+    });
+
+export const setBuildingFacade = (token, buildingId, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request(`/buildings/${buildingId}/facade`, { token, method: "PUT", body: form });
+};
+
+export const removeBuildingFacade = (token, buildingId) =>
+    request(`/buildings/${buildingId}/facade`, { token, method: "DELETE" });

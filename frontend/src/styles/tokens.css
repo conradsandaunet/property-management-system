@@ -1,28 +1,40 @@
 :root {
   --paper: #ffffff;
+  --canvas: #f6f7f9;
   --ink: #14171a;
-  --ink-muted: #6b7280;
+  --ink-muted: #5f6672;
   --ink-faint: #9aa1ab;
   --blue: #1d4ed8;
   --blue-dark: #1638a8;
   --blue-pale: #eef3ff;
   --border: #e3e6ea;
+  --border-strong: #cdd2d9;
   --error: #b3261e;
+  --error-pale: #fdecea;
 
   --success: #1c6b36;
   --success-pale: #e3f4e8;
   --warning: #8a5a00;
   --warning-pale: #fff4dc;
   --neutral-pale: #f1f2f4;
+  --hover: #f1f3f6;
 
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --serif: ui-serif, Georgia, "Times New Roman", serif;
 
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  --shadow-pop: 0 8px 24px rgb(20 23 26 / 12%), 0 2px 6px rgb(20 23 26 / 8%);
+  --shadow-panel: -12px 0 32px rgb(20 23 26 / 10%);
+
+  /* Strong ease-out for UI; the drawer curve settles like an iOS sheet. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --w-form: 480px;
-  --w-page: 720px;
-  --w-wide: 960px;
+  --w-page: 760px;
+  --w-wide: 1080px;
+  --sidebar: 232px;
 
   color-scheme: light;
   font-synthesis: none;

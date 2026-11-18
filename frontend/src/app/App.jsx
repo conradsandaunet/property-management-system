@@ -3,25 +3,21 @@ import { useAuth } from "../auth/useAuth";
 import LoginPage from "../auth/LoginPage";
 import AppLayout from "./AppLayout";
 import { RequireAuth, RequireRole } from "./guards";
+import { START_PAGE } from "./nav";
 import HomePage from "../features/home/HomePage";
-import AccountLayout from "../features/residents/AccountLayout";
-import HouseholdPage from "../features/residents/HouseholdPage";
-import ContactPage from "../features/residents/ContactPage";
-import OverviewPage from "../features/residents/OverviewPage";
-import ManageResidentsPage from "../features/residents/ManageResidentsPage";
-import ManageApartmentsPage from "../features/residents/ManageApartmentsPage";
-import ManageBuildingsPage from "../features/residents/ManageBuildingsPage";
-import MyRequestPage from "../features/maintenance/MyRequestPage";
-import NewRequestPage from "../features/maintenance/NewRequestPage";
-import OpenRequestPage from "../features/maintenance/OpenRequestPage.jsx";
-import WorkOrdersPage from "../features/maintenance/WorkOrdersPage";
-import InvoicesPage from "../features/billing/InvoicesPage";
-import BoardInvoicesPage from "../features/billing/BoardInvoicesPage";
-import ReservationsLayout from "../features/reservations/ReservationsLayout";
-import BookPage from "../features/reservations/BookPage";
-import MyReservationsPage from "../features/reservations/MyReservationsPage";
-import BoardResourcesPage from "../features/reservations/BoardResourcesPage";
+import AccountPage from "../features/residents/AccountPage";
 import NotificationsPage from "../features/notifications/NotificationsPage";
+import MyRequestsPage from "../features/maintenance/MyRequestsPage";
+import InvoicesPage from "../features/billing/InvoicesPage";
+import BookingsPage from "../features/reservations/BookingsPage";
+import OverviewPage from "../features/board/OverviewPage";
+import PropertyPage from "../features/property/PropertyPage";
+import ApartmentDetailPage from "../features/property/ApartmentDetailPage";
+import BuildingPage from "../features/property/BuildingPage";
+import MaintenanceQueuePage from "../features/maintenance/MaintenanceQueuePage";
+import BillingPage from "../features/billing/BillingPage";
+import ResourcesPage from "../features/reservations/ResourcesPage";
+import WorkOrdersPage from "../features/maintenance/WorkOrdersPage";
 
 export default function App() {
     const { token, role } = useAuth();
@@ -33,37 +29,36 @@ export default function App() {
 
             <Route element={<RequireAuth />}>
                 <Route element={<AppLayout />}>
-                    <Route index element={role === "WORKER" ? <Navigate to="/work-orders" replace /> : <HomePage />} />
+                    <Route index element={<Navigate to={START_PAGE[role] ?? "/home"} replace />} />
 
-                    <Route path="maintenance" element={<MyRequestPage token={token} />} />
-                    <Route path="maintenance/new" element={<NewRequestPage token={token} />} />
+                    <Route element={<RequireRole roles={["RESIDENT", "BOARD"]} />}>
+                        <Route path="home" element={<HomePage />} />
+                        <Route path="maintenance" element={<MyRequestsPage />} />
+                        <Route path="invoices" element={<InvoicesPage />} />
+                        <Route path="bookings" element={<BookingsPage />} />
+                        <Route path="account" element={<AccountPage />} />
+                        <Route path="notifications" element={<NotificationsPage />} />
 
-                    <Route path="invoices" element={<InvoicesPage />} />
-
-                    <Route path="reservations" element={<ReservationsLayout />}>
-                        <Route index element={<Navigate to="book" replace />} />
-                        <Route path="book" element={<BookPage />} />
-                        <Route path="mine" element={<MyReservationsPage />} />
-                    </Route>
-
-                    <Route path="account" element={<AccountLayout />}>
-                        <Route index element={<Navigate to="household" replace />} />
-                        <Route path="household" element={<HouseholdPage />} />
-                        <Route path="contact" element={<ContactPage />} />
+                        {/* Old addresses, kept so links and bookmarks still work. */}
+                        <Route path="maintenance/new" element={<Navigate to="/maintenance?new=1" replace />} />
+                        <Route path="reservations/*" element={<Navigate to="/bookings" replace />} />
+                        <Route path="account/*" element={<Navigate to="/account" replace />} />
                     </Route>
 
                     <Route element={<RequireRole roles={["BOARD"]} />}>
-                        <Route path="board/overview" element={<OverviewPage />} />
-                        <Route path="board/residents" element={<ManageResidentsPage />} />
-                        <Route path="board/apartments" element={<ManageApartmentsPage />} />
-                        <Route path="board/buildings" element={<ManageBuildingsPage />} />
-                        <Route path="board/maintenance" element={<OpenRequestPage />} />
-                        <Route path="board/invoices" element={<BoardInvoicesPage />} />
-                        <Route path="board/resources" element={<BoardResourcesPage />} />
-                    </Route>
+                        <Route path="board" element={<OverviewPage />} />
+                        <Route path="board/property" element={<PropertyPage />} />
+                        <Route path="board/property/buildings/:id" element={<BuildingPage />} />
+                        <Route path="board/property/apartments/:id" element={<ApartmentDetailPage />} />
+                        <Route path="board/maintenance" element={<MaintenanceQueuePage />} />
+                        <Route path="board/billing" element={<BillingPage />} />
+                        <Route path="board/resources" element={<ResourcesPage />} />
 
-                    <Route element={<RequireRole roles={["RESIDENT", "BOARD"]} />}>
-                        <Route path="notifications" element={<NotificationsPage />} />
+                        <Route path="board/overview" element={<Navigate to="/board" replace />} />
+                        <Route path="board/residents" element={<Navigate to="/board/property?tab=residents" replace />} />
+                        <Route path="board/apartments" element={<Navigate to="/board/property" replace />} />
+                        <Route path="board/buildings" element={<Navigate to="/board/property" replace />} />
+                        <Route path="board/invoices" element={<Navigate to="/board/billing" replace />} />
                     </Route>
 
                     <Route element={<RequireRole roles={["WORKER"]} />}>
