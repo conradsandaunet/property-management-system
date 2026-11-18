@@ -1,193 +1,184 @@
-# property-management-system
+# Property Management System
 
-A microservices-based property management system for a housing cooperative: residents,
-billing, maintenance requests and reservations of shared resources. Built for the PG3402
-Microservices exam.
+A microservices-based system for a housing cooperative. Residents report maintenance issues,
+see and pay invoices and book shared resources. Board members manage the building, assign
+work and generate invoices, and maintenance workers handle their assigned work orders. Built
+for the PG3402 Microservices exam.
+
+The system has four business services (resident, billing, maintenance and reservation), a
+gateway that is the single entry point, and a React frontend. Each service has its own
+Postgres database. The services talk to each other synchronously over REST and
+asynchronously through Kafka, and register in Consul for service discovery. Everything runs
+with `docker compose up`.
 
 ## Contents
 
-- [Quick start](#quick-start)
+- [Ways to run the project](#ways-to-run-the-project)
+- [Quick start (Docker Compose)](#quick-start-docker-compose)
+- [Running the services in the IDE](#running-the-services-in-the-ide)
 - [Demo users and data](#demo-users-and-data)
-- [What to try](#what-to-try)
+- [User stories to try](#user-stories-to-try)
 - [Architecture](#architecture)
-- [Consul: service discovery, health and configuration](#consul-service-discovery-health-and-configuration)
-- [Load balancing and several instances](#load-balancing-and-several-instances)
-- [Kafka: asynchronous events](#kafka-asynchronous-events)
+- [Consul, load balancing and Kafka](#consul-load-balancing-and-kafka)
 - [Running the tests](#running-the-tests)
-- [Developing in the IDE](#developing-in-the-ide)
+- [Team and contributions](#team-and-contributions)
+- [Troubleshooting](#troubleshooting)
 - [More documentation](#more-documentation)
 
-## Quick start
+## Ways to run the project
 
-Requires Docker (with Compose). Nothing else needs to be installed.
+| Way | Use it for | Where |
+|---|---|---|
+| Docker Compose (recommended) | Running the whole system | [Quick start](#quick-start-docker-compose) |
+
+## Quick start (Docker Compose)
+
+**You need:** Docker with Compose. Nothing else has to be installed.
+
+1. Unzip the project and open a terminal in the project folder.
+2. Create the settings file:
 
 ```bash
-cp .env.example .env     # then set JWT_SECRET, BOARD_SEED_PASSWORD and WORKER_SEED_PASSWORD
+cp .env.example .env
+```
+
+3. Start everything (the first build takes a few minutes):
+
+```bash
 docker compose up --build
 ```
 
-Open **http://localhost:3000**. The first start builds all images and takes a few minutes;
-the app is ready when all containers are `healthy` (`docker compose ps`).
+4. Wait until all containers are `healthy`. You can check with `docker compose ps`.
+5. Open **http://localhost:3000** and sign in with one of the [demo users](#demo-users-and-data).
 
-Notes:
+The default values in `.env.example` work as they are, so nothing has to be edited to try the
+project. With the defaults, the board and the workers use the password `change-this-password`.
+Change the values in `.env` for anything other than a demo. `JWT_SECRET` must be at least 32
+characters and is shared by all services.
 
-- `JWT_SECRET` must be at least 32 characters. It is shared by all services and the gateway.
-- Only the frontend (nginx, port 3000) is published for the application. It serves the React
-  app and proxies `/api` to the gateway; the gateway and the services are reachable inside the
-  compose network only, so nothing can bypass the JWT check. Consul (8500) and the databases
-  (5432-5435) are also published for inspection.
-- To start from scratch (empty databases, demo data re-created): `docker compose down -v`.
-- Port already in use? Change `FRONTEND_PORT` in `.env`.
+| Address | What |
+|---|---|
+| http://localhost:3000 | The application |
+| http://localhost:8500 | Consul UI (services and their health, configuration) |
+
+Only the frontend (nginx) is published for the application. It serves the React app and
+proxies `/api` to the gateway. The gateway and the services are reachable inside the Docker
+network only, so no request can skip the JWT check. The databases (5432-5435) and Consul
+(8500) are also published for inspection.
+
+To start from scratch with empty databases and fresh demo data: `docker compose down -v`. Set `FRONTEND_PORT` in `.env` if port 3000 is busy.
+
 
 ## Demo users and data
 
-On first start every service fills its (empty) database with demo data: 2 buildings
-("Solsiden Borettslag" with 6 apartments 101-302, and "Havneparken" with 2 vacant apartments), 8 residents, invoices for last and this month (one overdue),
-7 maintenance requests in all statuses, 3 workers, 5 resources (3 parking spaces, common room,
-roof terrace), a few upcoming bookings and photos of the first three apartments plus the facade (shown
-under *Apartments -> Photos* for the board). Set `SEED_DEMO_DATA=false` to start with only the
-board account and the workers.
+On first start every service fills its empty database with demo data: two buildings
+("Solsiden Borettslag" with 6 apartments and "Havneparken" with 2 vacant ones), 8 residents,
+invoices for last and this month (one overdue), 7 maintenance requests in all statuses, 3
+workers, 5 resources (3 parking spaces, a common room and a roof terrace), some upcoming
+bookings, and photos of apartments and a facade. Set `SEED_DEMO_DATA=false` to start with only
+the board account and the workers.
 
 | Role | Sign in at | Email | Password |
 |---|---|---|---|
-| Board member | http://localhost:3000 | `board@example.com` | `BOARD_SEED_PASSWORD` from `.env` |
+| Board member | http://localhost:3000 | `board@example.com` | `BOARD_SEED_PASSWORD` (`change-this-password` by default) |
 | Resident | http://localhost:3000 | `kari@example.com` (also `ola@`, `ingrid@`, `lars@`, `sofie@`, `emil@`, `nora@example.com`) | `demo-resident-pw` |
-| Maintenance worker | http://localhost:3000/worker/login | `per@example.com` (plumbing, heating), `jon@example.com` (electrical, appliances), `ola@example.com` (all) | `WORKER_SEED_PASSWORD` from `.env` |
+| Maintenance worker | http://localhost:3000/worker/login | `per@example.com` (plumbing, heating), `jon@example.com` (electrical, appliances), `ola@example.com` (all) | `WORKER_SEED_PASSWORD` (`change-this-password` by default) |
 
-Ola and Ingrid Hansen share apartment 201, and Sofie and Emil share 301.
+Seeding only happens when a database is empty, so it does not run again on an existing
+volume. Use `docker compose down -v` to reset.
 
-## What to try
+## User stories to try
 
-Residents get a top bar (*Home*, *Maintenance*, *Invoices*, *Bookings*), a notification bell and an
-account menu. Board members start in the **board view** (a sidebar with the board's tools) and can
-switch to the **resident view** for their own home ("Your home" in the sidebar, or the account menu),
-and back with "Board view". Actions confirm with a short message in the bottom right corner.
+The complete list with priorities is in [docs/requirements.md](docs/requirements.md). These
+scenarios cover the main functionality.
 
-**Resident** (e.g. `kari@example.com`)
-- *Home*: the building's facade, and what needs attention: an unpaid or overdue invoice, open
-  requests, upcoming bookings and the latest notifications.
-- *Maintenance*: report an issue (category, location, description, priority) in a side panel,
-  follow each request through Submitted, Assigned, In progress and Resolved, and comment on it.
-- *Invoices*: the current invoice with its lines and the payment details (account number and KID,
-  MOD10), the PDF, and earlier invoices. Payment is simulated: "Pay in online bank (simulated)"
-  stands in for the bank confirming the payment.
-- *Bookings*: choose a resource, a day and a free one-hour slot, then book; cancel upcoming bookings.
-- *Notifications* (bell): appears when a worker completes one of your requests (see [Kafka](#kafka-asynchronous-events)).
-- *Your account* (avatar menu): apartment, household and contact details (editable).
+| Story | Sign in as | How to try it |
+|---|---|---|
+| Resident sees apartment, household and contact details | `kari@example.com` | Home, then Account |
+| Resident reports a maintenance issue and follows its status | `kari@example.com` | Maintenance, then report a new issue |
+| Board assigns a request to a worker | `board@example.com` | Maintenance, then pick a worker |
+| Worker accepts, starts and completes a request | `per@example.com` at `/worker/login` | Work orders |
+| Resident gets a notification when the request is completed (asynchronous event) | `kari@example.com` | Notifications, after the worker completes a request |
+| Resident and worker comment on a request | `kari@example.com` and `per@example.com` | Open a request and add a comment |
+| Board manages residents and apartments, and apartment photos | `board@example.com` | Residents and Apartments |
+| Board generates monthly invoices and marks them paid | `board@example.com` | Invoices |
+| Resident sees invoices and simulates payment | `kari@example.com` | Invoices |
+| Resident books and cancels a shared resource | `kari@example.com` | Reservations |
+| Board blocks a resource for a period | `board@example.com` | Resources |
 
-**Board member**
-- *Overview*: key numbers, requests that still need a worker (assign them directly), overdue
-  invoices (mark as paid) and closed resources.
-- *Property*: the buildings with their facade photos. Open a building for its apartments, to add an
-  apartment, rename it, or change the facade photo; open an apartment for its residents (add a new
-  one or move someone in) and photos (JPEG, PNG or WebP, up to 5 MB each, max 10; stored in the
-  resident database). The *Residents* tab lists everyone (search, edit, remove, reactivate).
-  Apartment numbers only have to be unique within a building.
-- *Maintenance*: all open requests, most urgent first, filtered by status. Open one to see the
-  details and the comments between the resident and the worker; assign or reassign a worker.
-- *Billing*: pick a month, generate invoices for every apartment, filter by paid, pending or overdue,
-  and mark payments made outside the portal as paid.
-- *Resources*: see each shared resource's status and bookings, block it for a period, or close it
-  until further notice.
-
-**Maintenance worker**
-- *Work orders*: your assigned requests, grouped into in progress and to do. Start and complete
-  them, and comment. Completing a request publishes the `MaintenanceCompleted` event, and the
-  resident gets a notification.
-
-Suggested end-to-end demo: as `kari@example.com` report an issue and add a comment, as the board
-assign it to Per from the overview, as Per (`/worker/login`) reply, start and complete it, then check
-Kari's bell.
+**Suggested end-to-end demo:** as `kari@example.com` report a maintenance issue. As
+`board@example.com` assign it to Per. As `per@example.com` at `/worker/login`, accept, start and
+complete it. Sign in as Kari again and open Notifications.
 
 ## Architecture
 
-```
-browser -> nginx (frontend) :3000 -> gateway :8080 -> resident :8081 | billing :8082
-                                                      maintenance :8083 | reservation :8084
-```
+![Architecture diagram: the frontend and gateway route requests to four services, each with its own database. Billing calls resident over REST, and maintenance publishes events to Kafka, which resident consumes.](docs/images/diagram.png)
 
-| Service | Responsibility | Database |
-|---|---|---|
-| frontend | React app, served by nginx, proxies `/api` | |
-| gateway | Single entry point: routing, CORS, JWT check, login rate limit, load balancing | |
-| resident-service | Apartments, residents, login, notifications | `resident-db` (5432) |
-| billing-service | Monthly invoices, payments, invoice PDF | `billing-db` (5433) |
-| maintenance-service | Maintenance requests, workers, work orders | `maintenance-db` (5434) |
-| reservation-service | Shared resources and bookings | `reservation-db` (5435) |
-| security-common | Shared library (JWT), not a deployable service | |
-| consul | Service discovery, health overview, central configuration | |
-| kafka | Message broker (KRaft, single node) | |
+Solid blue arrows are synchronous calls (REST and database access). Dashed yellow arrows are
+asynchronous events sent through Kafka. Every service and the gateway register in Consul.
 
-Each service owns its database (Postgres, schema managed by Flyway) and never reads another's.
+| Service | Port | Responsibility | Database |
+|---|---|---|---|
+| frontend | 3000 | React app served by nginx, proxies `/api` | |
+| gateway | 8080 | Routing, CORS, JWT check, login rate limit, load balancing | |
+| resident-service | 8081 | Apartments, residents, login, notifications | `resident-db` (5432) |
+| billing-service | 8082 | Monthly invoices, payments, invoice PDF | `billing-db` (5433) |
+| maintenance-service | 8083 | Maintenance requests, workers, work orders, comments | `maintenance-db` (5434) |
+| reservation-service | 8084 | Shared resources and bookings | `reservation-db` (5435) |
+| security-common | | Shared JWT library, not a deployable service | |
+| consul | 8500 | Service discovery, health, central configuration | |
+| kafka | 9092 | Message broker (KRaft, single node) | |
 
-Communication:
+Each service owns its database (schema managed by Flyway) and never reads another service's.
 
-- **Synchronous:** billing-service calls resident-service over REST (`ResidentServiceClient`,
-  with a service token) to get the apartments and the signed-in resident, which it needs to
-  generate invoices per apartment and to show each resident their own.
-- **Asynchronous:** maintenance-service publishes `MaintenanceCompleted` to Kafka and
-  resident-service consumes it ([details](docs/architecture.md)).
+**Communication**
 
-Gateway routes (the `/api` prefix is stripped):
+| Kind | From | To | Why |
+|---|---|---|---|
+| Synchronous (REST) | gateway | the four services | Routing by path |
+| Synchronous (REST) | billing-service | resident-service | Billing needs apartments and the signed-in resident to create and show invoices |
+| Asynchronous (Kafka) | maintenance-service | resident-service | A completed request notifies the resident, and the services do not depend on each other |
+
+**Gateway routes** (the `/api` prefix is stripped):
 
 | Path | Service |
 |---|---|
-| `/api/auth`, `/api/residents`, `/api/apartments`, `/api/buildings`, `/api/notifications` | resident-service |
+| `/api/auth`, `/api/residents`, `/api/apartments`, `/api/notifications` | resident-service |
 | `/api/invoices` | billing-service |
 | `/api/maintenance`, `/api/workers` | maintenance-service |
 | `/api/reservations`, `/api/resources` | reservation-service |
 
-The gateway validates the JWT and the services validate it again and enforce roles. Logins are
-limited per client address (default 5 per minute, `429` when exceeded; kept in memory, so it is
-per gateway instance).
+The gateway validates the JWT, and each service validates it again and enforces its roles
+(`RESIDENT`, `BOARD`, `WORKER`). Logins are limited to 5 per minute per client address
+(`429` when exceeded, kept in memory per gateway instance).
 
-## Consul: service discovery, health and configuration
+More detail, including a sequence diagram of the event flow, is in
+[docs/architecture.md](docs/architecture.md).
 
-Consul UI: **http://localhost:8500**
+## Consul, load balancing and Kafka
 
-- **Discovery and routing:** every service and the gateway register themselves in Consul. The
-  gateway routes with `lb://<service-name>`, so it has no hard-coded service addresses.
-- **Health:** the *Services* page shows each instance's health check (`/actuator/health`,
-  including database status). Compose uses the same endpoint for start-up order.
-- **Central configuration:** the files in [`consul-config/`](consul-config) are loaded into
-  Consul's key/value store by the `consul-config` container on every start
-  (`config/application/data` for all services, `config/gateway/data` for the gateway). The
-  services read them at start-up via `spring.config.import`. Today that is the JWT lifetime,
-  the Kafka topic name, the demo-data switch and the login rate limit.
-  See them under *Key/Value*; edit the file (or the key) and restart the service to apply a change.
-- **Not in Consul on purpose:** secrets (`JWT_SECRET`, database passwords) stay in `.env` because
-  Consul's dev mode is unauthenticated and unencrypted. Per-environment addresses (database
-  URLs, Kafka address) stay in environment variables too.
+**Consul** (http://localhost:8500) holds service discovery, health and shared configuration.
+The gateway routes with `lb://<service-name>`, so it has no hard-coded service addresses.
+The *Services* page shows each instance's health check (`/actuator/health`). The files in
+[`consul-config/`](consul-config) are loaded into Consul's key/value store on every start and
+read by the services at start-up. Secrets (`JWT_SECRET`, database passwords) stay in `.env`.
+If Consul is unavailable, a service still starts with built-in defaults.
 
-If Consul is unavailable a service still starts (`optional:consul:`), using its built-in defaults.
-
-## Load balancing and several instances
-
-Run two copies of the reservation service; the gateway spreads requests over them:
+**Load balancing:** run two copies of the reservation service and the gateway spreads
+requests over them.
 
 ```bash
 docker compose up -d --scale reservation-service=2
 ```
 
-- Both instances appear under *Services -> reservation-service* in Consul.
-- Watch the requests alternate: `docker compose logs -f reservation-service`
-  (the prefix shows `reservation-service-1` / `-2`), then use the Reservations page.
-- Stop one (`docker stop <container>`): after a few seconds only healthy instances receive traffic.
-- Booking is safe with several instances: the database refuses overlapping active reservations
-  for the same resource (an exclusion constraint), so two simultaneous requests for the same slot
-  give one success and one `409`.
+Both instances appear in Consul. Use the Reservations page and watch
+`docker compose logs -f reservation-service` alternate between `-1` and `-2`. Booking stays
+safe with several instances, because the database refuses overlapping reservations for the
+same resource. The login rate limit is kept per gateway instance, so run one gateway.
 
-Limits: reservation is the service prepared for this. The login rate limit is kept in memory per
-gateway instance, so run one gateway.
-
-## Kafka: asynchronous events
-
-When a worker completes a request, maintenance-service publishes `MaintenanceCompleted` to the
-topic `maintenance.completed` after the database change is saved. resident-service consumes it
-and stores a notification for the resident. Details and a sequence diagram are in
-[docs/architecture.md](docs/architecture.md).
-
-See the messages on the topic:
+**Kafka:** when a worker completes a request, maintenance-service publishes
+`MaintenanceCompleted` to the topic `maintenance.completed` after the database change is
+saved. resident-service consumes it and stores a notification. To see the messages:
 
 ```bash
 docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
@@ -196,44 +187,35 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## Running the tests
 
-Backend (Java 21). The tests that load a Spring context use real Postgres databases, so start
-them first, then run all modules from the repository root:
+The backend tests that load a Spring context use real Postgres databases, so start them
+first. Java 21 is required. Then run all modules from the repository root:
 
 ```bash
 docker compose up -d resident-db billing-db maintenance-db reservation-db
 ./mvnw clean test
 ```
 
-Frontend:
+Frontend (Node 22):
 
 ```bash
 cd frontend && npm ci && npm run lint && npm run build
 ```
 
-GitHub Actions runs the same on every push and pull request (`.github/workflows/ci.yml`), and
-the `main` branch requires green checks before a pull request can be merged.
+GitHub Actions runs the same checks on every push and pull request, and `main` requires green
+checks before a pull request can be merged.
 
-## Developing in the IDE
+## Troubleshooting
 
-Run only the infrastructure in Docker and the services from the IDE:
-
-```bash
-docker compose up -d resident-db billing-db maintenance-db reservation-db kafka consul consul-config
-```
-
-- Install the shared library once (and after changing it): `mvn install -pl security-common`.
-  Not needed for `docker compose` or when running `./mvnw test` from the root.
-- Each module reads its settings from the environment. Copy the module's `.env.example` to
-  `.env` (gitignored) and fill it in: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, and
-  `BOARD_SEED_PASSWORD` / `WORKER_SEED_PASSWORD` / `RESIDENT_SERVICE_URL` where listed.
-  `JWT_SECRET` must be identical everywhere.
-- Services started from the IDE register in Consul with their IP, so the gateway (also run from
-  the IDE, or in Docker) can route to them. Consul must be running for the gateway to find them.
-- Frontend: `cd frontend && npm run dev` (it uses `http://localhost:8080` for the gateway unless
-  `frontend/.env` says otherwise).
+| Problem | Fix |
+|---|---|
+| `port is already allocated` (for example 5432) | Another container or Postgres uses the port. Stop it, or change the published port in `docker-compose.yml` |
+| A service exits with `Could not resolve placeholder` | A value is missing in `.env`. Compare it with `.env.example` |
+| Port 3000 is busy | Set `FRONTEND_PORT` in `.env` |
+| Login keeps saying wrong email or password | Logins are limited to 5 per minute. Wait a minute |
+| No demo data after start | The databases already had data. Run `docker compose down -v` and start again |
+| Docker build fails with `parent snapshot ... does not exist` | Corrupt build cache: `docker builder prune -f` and build again |
 
 ## More documentation
 
-- [Architecture: the MaintenanceCompleted event flow](docs/architecture.md)
+- [Architecture and the MaintenanceCompleted event flow](docs/architecture.md)
 - [Project overview and user stories](docs/requirements.md)
-- [Exam checklist and status](docs/exam-checklist.md)
