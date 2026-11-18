@@ -1,24 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import Notice from "../../components/Notice";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import Icon from "../../components/Icon";
+import Skeleton from "../../components/Skeleton";
+import { useToast } from "../../components/toastContext";
 import { useAuth } from "../../auth/useAuth";
-import { describeError } from "./errors";
-import {
-    getApartmentPhotoBlob,
-    getApartmentPhotos,
-    removeApartmentPhoto,
-    uploadApartmentPhoto,
-} from "../../api/residents";
-import "./photos.css";
+import { getApartmentPhotoBlob, getApartmentPhotos, removeApartmentPhoto, uploadApartmentPhoto } from "../../api/residents";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
 const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTOS = 10;
 
-/** One photo. Fetched with the token and shown from an object URL that is freed on unmount. */
+/** One photo, fetched with the token (an <img src> can't send it) and shown from an object URL. */
 function Photo({ apartmentId, photo, onRemove }) {
     const { token } = useAuth();
     const [src, setSrc] = useState(null);
     const [failed, setFailed] = useState(false);
-    const [confirming, setConfirming] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -38,105 +34,93 @@ function Photo({ apartmentId, photo, onRemove }) {
 
     return (
         <li className="photo">
-            <div className="photo__frame">
-                {src && <img className="photo__img" src={src} alt={photo.fileName} />}
-                {!src && <span className="photo__placeholder">{failed ? "Couldn't load" : "Loading..."}</span>}
-            </div>
-            <div className="photo__bar">
-                <span className="photo__name" title={photo.fileName}>{photo.fileName}</span>
-                {confirming ? (
-                    <span>
-                        <button className="btn-link btn-link--danger" type="button" onClick={() => onRemove(photo)}>
-                            Yes, remove
-                        </button>
-                        <button className="btn-link" type="button" onClick={() => setConfirming(false)}>
-                            Cancel
-                        </button>
-                    </span>
-                ) : (
-                    <button className="btn-link btn-link--danger" type="button" onClick={() => setConfirming(true)}>
-                        Remove
-                    </button>
-                )}
-            </div>
+            {src && <img className="photo__img" src={src} alt={photo.fileName} />}
+            {!src && <span className="photo__placeholder">{failed ? "Couldn't load" : ""}</span>}
+            <button type="button" className="btn btn--secondary btn--icon photo__remove" aria-label={`Remove ${photo.fileName}`}
+                    onClick={() => onRemove(photo)}>
+                <Icon name="x" size={16} />
+            </button>
         </li>
     );
 }
 
 export default function ApartmentPhotos({ apartmentId }) {
     const { token } = useAuth();
+    const toast = useToast();
     const [photos, setPhotos] = useState(null);
-    const [error, setError] = useState("");
     const [uploading, setUploading] = useState(false);
+    const [removing, setRemoving] = useState(null);
     const input = useRef(null);
 
     useEffect(() => {
         let cancelled = false;
         getApartmentPhotos(token, apartmentId)
             .then((data) => { if (!cancelled) setPhotos(data); })
-            .catch((e) => {
-                if (!cancelled) setError(describeError(e, "Couldn't load the photos."));
-            });
+            .catch(() => { if (!cancelled) setPhotos([]); });
         return () => { cancelled = true; };
     }, [token, apartmentId]);
 
     async function handleFiles(event) {
         const files = Array.from(event.target.files);
         event.target.value = "";
-        if (files.length === 0) return;
-
-        setError("");
         setUploading(true);
+        let added = 0;
         for (const file of files) {
             if (file.size > MAX_BYTES) {
-                setError(`${file.name} is larger than 5 MB.`);
+                toast(`${file.name} is larger than 5 MB`, { kind: "error" });
                 continue;
             }
             try {
                 const saved = await uploadApartmentPhoto(token, apartmentId, file);
                 setPhotos((current) => [...(current ?? []), saved]);
+                added++;
             } catch (e) {
-                setError(describeError(e, `Couldn't upload ${file.name}.`, {
-                    409: "An apartment can have at most 10 photos.",
-                    413: `${file.name} is larger than 5 MB.`,
-                    415: `${file.name} isn't a JPEG, PNG or WebP image.`,
-                }));
+                toast({
+                    409: `An apartment can have at most ${MAX_PHOTOS} photos`,
+                    413: `${file.name} is larger than 5 MB`,
+                    415: `${file.name} isn't a JPEG, PNG or WebP image`,
+                }[e.status] ?? `Couldn't upload ${file.name}`, { kind: "error" });
                 break;
             }
         }
+        if (added > 0) toast(added === 1 ? "Photo added" : `${added} photos added`);
         setUploading(false);
     }
 
-    async function handleRemove(photo) {
+    async function handleRemove() {
         try {
-            await removeApartmentPhoto(token, apartmentId, photo.id);
-            setPhotos((current) => current.filter((p) => p.id !== photo.id));
-            setError("");
-        } catch (e) {
-            setError(describeError(e, "Couldn't remove the photo."));
+            await removeApartmentPhoto(token, apartmentId, removing.id);
+            setPhotos((current) => current.filter((p) => p.id !== removing.id));
+            toast("Photo removed");
+        } catch {
+            toast("Couldn't remove the photo", { kind: "error" });
         }
+        setRemoving(null);
     }
 
+    if (photos === null) return <Skeleton rows={1} />;
+
     return (
-        <div className="section-gap">
-            {error && <Notice kind="error">{error}</Notice>}
-            {photos === null && !error && <Notice>Loading...</Notice>}
-            {photos && photos.length === 0 && <Notice>No photos yet.</Notice>}
-            {photos && photos.length > 0 && (
-                <ul className="photos">
-                    {photos.map((p) => (
-                        <Photo key={p.id} apartmentId={apartmentId} photo={p} onRemove={handleRemove} />
-                    ))}
-                </ul>
-            )}
-            <div className="list-item__actions">
-                <input ref={input} type="file" accept={ACCEPT} multiple hidden onChange={handleFiles} />
-                <button className="btn-link" type="button" disabled={uploading}
-                        onClick={() => input.current.click()}>
-                    {uploading ? "Uploading..." : "Add photos"}
-                </button>
-                <span className="list-item__sub">JPEG, PNG or WebP, up to 5 MB each, max 10</span>
-            </div>
-        </div>
+        <>
+            <ul className="photos">
+                {photos.map((p) => (
+                    <Photo key={p.id} apartmentId={apartmentId} photo={p} onRemove={setRemoving} />
+                ))}
+                {photos.length < MAX_PHOTOS && (
+                    <li>
+                        <input ref={input} type="file" accept={ACCEPT} multiple hidden onChange={handleFiles} />
+                        <button type="button" className="photo-add" disabled={uploading} onClick={() => input.current.click()}
+                                style={{ width: "100%" }}>
+                            <Icon name="photo" size={22} />
+                            <span className="small">{uploading ? "Uploading…" : "Add photos"}</span>
+                        </button>
+                    </li>
+                )}
+            </ul>
+            <p className="hint">JPEG, PNG or WebP, up to 5 MB each, at most {MAX_PHOTOS} photos.</p>
+
+            <ConfirmDialog open={Boolean(removing)} title="Remove this photo?" confirmLabel="Remove" danger
+                           onConfirm={handleRemove} onCancel={() => setRemoving(null)} />
+        </>
     );
 }

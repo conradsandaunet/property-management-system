@@ -1,24 +1,30 @@
-export const NAV_ITEMS = {
-    RESIDENT: [
-        { label: "Home", to: "/", end: true },
-        { label: "Maintenance", to: "/maintenance" },
-        { label: "Invoices", to: "/invoices" },
-        { label: "Reservations", to: "/reservations" },
-        { label: "Notifications", to: "/notifications", unreadCount: true },
-        { label: "Account", to: "/account" },
-    ],
-    BOARD: [
-        { label: "Home", to: "/", end: true },
-        { label: "Overview", to: "/board/overview" },
-        { label: "Residents", to: "/board/residents" },
-        { label: "Apartments", to: "/board/apartments" },
-        { label: "Buildings", to: "/board/buildings" },
-        { label: "Maintenance", to: "/board/maintenance" },
-        { label: "Invoices", to: "/board/invoices" },
-        { label: "Resources", to: "/board/resources" },
-        { label: "Notifications", to: "/notifications", unreadCount: true },
-    ],
-    WORKER: [
-        { label: "Work orders", to: "/work-orders" },
-    ],
-};
+// Pages for a resident's own home. Board members live in the building too and reach these through
+// "Switch to resident view".
+export const HOME_NAV = [
+    { label: "Home", to: "/home", icon: "home" },
+    { label: "Maintenance", to: "/maintenance", icon: "tool" },
+    { label: "Invoices", to: "/invoices", icon: "receipt" },
+    { label: "Bookings", to: "/bookings", icon: "calendar" },
+];
+
+export const BOARD_NAV = [
+    { label: "Overview", to: "/board", icon: "overview", end: true },
+    { label: "Property", to: "/board/property", icon: "building" },
+    { label: "Maintenance", to: "/board/maintenance", icon: "tool", count: "unassigned" },
+    { label: "Billing", to: "/board/billing", icon: "cash" },
+    { label: "Resources", to: "/board/resources", icon: "parking" },
+];
+
+export const WORKER_NAV = [
+    { label: "Work orders", to: "/work-orders", icon: "clipboard" },
+];
+
+export const ROLE_LABELS = { BOARD: "Board member", WORKER: "Maintenance worker", RESIDENT: "Resident" };
+
+/** Where each role starts after logging in. */
+export const START_PAGE = { BOARD: "/board", RESIDENT: "/home", WORKER: "/work-orders" };
+
+/** The board view is everything under /board; every other page is the resident view. */
+export function isBoardPath(pathname) {
+    return pathname === "/board" || pathname.startsWith("/board/");
+}

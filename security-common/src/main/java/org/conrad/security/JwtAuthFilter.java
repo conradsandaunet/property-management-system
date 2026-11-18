@@ -39,11 +39,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.validateAndParse(token);
                 boolean isManager = Boolean.TRUE.equals(claims.get("manager", Boolean.class));
                 boolean isWorker = JwtService.WORKER_ROLE.equals(claims.get("role", String.class));
-                GrantedAuthority authority = new SimpleGrantedAuthority(
-                        isWorker ? "ROLE_WORKER" : isManager ? "ROLE_BOARD" : "ROLE_RESIDENT");
+                // Board members live in the building too, so they also get the resident role and can
+                // use their own invoices, bookings and maintenance requests.
+                List<GrantedAuthority> authorities = isWorker
+                        ? List.of(new SimpleGrantedAuthority("ROLE_WORKER"))
+                        : isManager
+                        ? List.of(new SimpleGrantedAuthority("ROLE_BOARD"), new SimpleGrantedAuthority("ROLE_RESIDENT"))
+                        : List.of(new SimpleGrantedAuthority("ROLE_RESIDENT"));
 
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        claims.getSubject(), null, List.of(authority)
+                        claims.getSubject(), null, authorities
                 );
                 authentication.setDetails(claims);
                 SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -26,9 +26,16 @@ export function formatRange(start, end) {
     return `${formatDay(start)} · ${formatTime(start)}–${formatTime(end)}`;
 }
 
+// The API sends the scheduled block as `from` / `to` (both null when there is none).
 export function isBlockedNow(resource) {
     if (resource.status === "MAINTENANCE") return true;
-    if (!resource.maintenanceFrom || !resource.maintenanceTo) return false;
+    if (!resource.from || !resource.to) return false;
     const now = new Date();
-    return new Date(resource.maintenanceFrom) <= now && now < new Date(resource.maintenanceTo);
+    return new Date(resource.from) <= now && now < new Date(resource.to);
+}
+
+/** A scheduled block that hasn't ended yet, or null. */
+export function upcomingBlock(resource) {
+    if (!resource.from || !resource.to || new Date(resource.to) <= new Date()) return null;
+    return { from: resource.from, to: resource.to };
 }

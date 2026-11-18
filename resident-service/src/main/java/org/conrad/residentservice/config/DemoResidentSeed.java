@@ -33,7 +33,7 @@ import java.util.List;
 public class DemoResidentSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoResidentSeed.class);
-    private static final String SECOND_BUILDING = "Havneparken";
+    static final String SECOND_BUILDING = "Havneparken";
 
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;

@@ -1,3 +1,3 @@
 package org.conrad.residentservice.dto;
 
-public record BuildingResponse(Long id, String name, int apartmentCount) {}
+public record BuildingResponse(Long id, String name, int apartmentCount, boolean hasFacade) {}

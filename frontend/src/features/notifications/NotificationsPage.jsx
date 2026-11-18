@@ -1,55 +1,54 @@
-import { useState } from "react";
-import Badge from "../../components/Badge";
+import EmptyState from "../../components/EmptyState";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
+import Skeleton from "../../components/Skeleton";
+import { useToast } from "../../components/toastContext";
+import { formatDateTime } from "../../lib/format";
 import { useNotifications } from "./useNotifications";
 
-function formatDateTime(iso) {
-    return new Date(iso).toLocaleString("en-GB", {
-        day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
-    });
-}
-
 export default function NotificationsPage() {
-    const { items, loading, error, markRead } = useNotifications();
-    const [saveError, setSaveError] = useState("");
+    const { items, loading, error, unread, markRead } = useNotifications();
+    const toast = useToast();
 
-    async function handleMarkRead(id) {
-        setSaveError("");
+    async function markAllRead() {
         try {
-            await markRead(id);
+            await Promise.all(items.filter((n) => !n.read).map((n) => markRead(n.id)));
         } catch {
-            setSaveError("Couldn't mark the notification as read.");
+            toast("Couldn't mark everything as read", { kind: "error" });
         }
     }
 
     return (
         <>
-            <PageHeader eyebrow="Account" title="Notifications" />
+            <PageHeader
+                title="Notifications"
+                subtitle="Updates about your maintenance requests."
+                actions={unread > 0 && (
+                    <button type="button" className="btn btn--secondary" onClick={markAllRead}>Mark all as read</button>
+                )}
+            />
 
-            {(error || saveError) && (
-                <Notice kind="error">{saveError || "Couldn't load your notifications."}</Notice>
+            {error && <Notice kind="error">Couldn't load your notifications.</Notice>}
+            {loading && !error && <Skeleton rows={3} />}
+            {!loading && !error && items.length === 0 && (
+                <EmptyState title="You're all caught up">
+                    You'll get a notification here when a worker completes one of your requests.
+                </EmptyState>
             )}
-            {loading && !error && <Notice>Loading...</Notice>}
-            {!loading && !error && items.length === 0 && <Notice>You have no notifications.</Notice>}
 
             {items.length > 0 && (
-                <ul className="list list--wide">
+                <ul className="item-list card card--flush" style={{ maxWidth: "var(--w-page)" }}>
                     {items.map((n) => (
-                        <li key={n.id} className="list-item">
-                            <div className="list-item__top">
-                                <span className="list-item__title">{n.message}</span>
-                                {!n.read && <Badge variant="info">New</Badge>}
-                            </div>
-                            <div className="list-item__meta">
-                                <span>{formatDateTime(n.createdAt)}</span>
+                        <li key={n.id} className="item" style={n.read ? undefined : { background: "var(--blue-pale)" }}>
+                            <div className="item__body">
+                                <div style={{ fontWeight: n.read ? 400 : 500 }}>{n.message}</div>
+                                <div className="item__meta">{formatDateTime(n.createdAt)}</div>
                             </div>
                             {!n.read && (
-                                <div className="list-item__actions">
-                                    <button className="btn-link" type="button" onClick={() => handleMarkRead(n.id)}>
-                                        Mark as read
-                                    </button>
-                                </div>
+                                <button type="button" className="btn btn--ghost btn--sm"
+                                        onClick={() => markRead(n.id).catch(() => toast("Couldn't update", { kind: "error" }))}>
+                                    Mark as read
+                                </button>
                             )}
                         </li>
                     ))}

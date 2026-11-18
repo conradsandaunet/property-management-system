@@ -36,7 +36,7 @@ export default function ApartmentForm({ mode, initial, buildings, onSubmit, onCa
     const idPrefix = creating ? "new-apt" : `edit-apt-${initial.id}`;
 
     return (
-        <form className="form-card" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
             <div className="field-row">
                 <div className="field">
                     <label className="label" htmlFor={`${idPrefix}-number`}>Apartment number</label>
@@ -64,7 +64,7 @@ export default function ApartmentForm({ mode, initial, buildings, onSubmit, onCa
                 <button className="btn" type="submit" disabled={submitting || buildings.length === 0}>
                     {submitting ? "Saving…" : creating ? "Add apartment" : "Save changes"}
                 </button>
-                <button className="btn-link" type="button" onClick={onCancel}>Cancel</button>
+                <button className="btn btn--secondary" type="button" onClick={onCancel}>Cancel</button>
             </div>
         </form>
     );

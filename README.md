@@ -58,30 +58,46 @@ Ola and Ingrid Hansen share apartment 201, and Sofie and Emil share 301.
 
 ## What to try
 
+Residents get a top bar (*Home*, *Maintenance*, *Invoices*, *Bookings*), a notification bell and an
+account menu. Board members start in the **board view** (a sidebar with the board's tools) and can
+switch to the **resident view** for their own home ("Your home" in the sidebar, or the account menu),
+and back with "Board view". Actions confirm with a short message in the bottom right corner.
+
 **Resident** (e.g. `kari@example.com`)
-- *Home / Account*: apartment, household and contact information (editable).
-- *Maintenance*: create a request (category, location, priority, description) and follow its status.
-- *Invoices*: see the current invoice and history, and simulate paying it.
-- *Reservations*: pick a resource, see free one-hour slots, book and cancel.
-- *Notifications*: appears when a worker completes one of your requests (see [Kafka](#kafka-asynchronous-events)).
+- *Home*: the building's facade, and what needs attention: an unpaid or overdue invoice, open
+  requests, upcoming bookings and the latest notifications.
+- *Maintenance*: report an issue (category, location, description, priority) in a side panel,
+  follow each request through Submitted, Assigned, In progress and Resolved, and comment on it.
+- *Invoices*: the current invoice with its lines and the payment details (account number and KID,
+  MOD10), the PDF, and earlier invoices. Payment is simulated: "Pay in online bank (simulated)"
+  stands in for the bank confirming the payment.
+- *Bookings*: choose a resource, a day and a free one-hour slot, then book; cancel upcoming bookings.
+- *Notifications* (bell): appears when a worker completes one of your requests (see [Kafka](#kafka-asynchronous-events)).
+- *Your account* (avatar menu): apartment, household and contact details (editable).
 
 **Board member**
-- *Overview*: apartments, occupied/vacant, residents.
-- *Buildings*: add, rename and remove buildings (a building with apartments cannot be removed).
-- *Residents* and *Apartments*: add, edit, remove; choose the building per apartment (apartment numbers
-  only have to be unique within a building); add or move residents from an apartment;
-  upload and remove photos of an apartment (JPEG, PNG or WebP, up to 5 MB each, max 10; stored in
-  the resident database).
-- *Maintenance*: all open requests by priority, assign a worker.
-- *Invoices*: generate monthly invoices, see paid/pending/overdue for the building, mark as paid.
-- *Resources*: manage shared resources, block one for a period (e.g. maintenance), see its bookings.
+- *Overview*: key numbers, requests that still need a worker (assign them directly), overdue
+  invoices (mark as paid) and closed resources.
+- *Property*: the buildings with their facade photos. Open a building for its apartments, to add an
+  apartment, rename it, or change the facade photo; open an apartment for its residents (add a new
+  one or move someone in) and photos (JPEG, PNG or WebP, up to 5 MB each, max 10; stored in the
+  resident database). The *Residents* tab lists everyone (search, edit, remove, reactivate).
+  Apartment numbers only have to be unique within a building.
+- *Maintenance*: all open requests, most urgent first, filtered by status. Open one to see the
+  details and the comments between the resident and the worker; assign or reassign a worker.
+- *Billing*: pick a month, generate invoices for every apartment, filter by paid, pending or overdue,
+  and mark payments made outside the portal as paid.
+- *Resources*: see each shared resource's status and bookings, block it for a period, or close it
+  until further notice.
 
 **Maintenance worker**
-- *Work orders*: your assigned requests. Accept, start and complete them. Completing a request
-  publishes the `MaintenanceCompleted` event, and the resident gets a notification.
+- *Work orders*: your assigned requests, grouped into in progress and to do. Start and complete
+  them, and comment. Completing a request publishes the `MaintenanceCompleted` event, and the
+  resident gets a notification.
 
-Suggested end-to-end demo: as `kari@example.com` create a maintenance request, as board assign
-it to Per, as Per accept, start and complete it, then check Kari's notifications.
+Suggested end-to-end demo: as `kari@example.com` report an issue and add a comment, as the board
+assign it to Per from the overview, as Per (`/worker/login`) reply, start and complete it, then check
+Kari's bell.
 
 ## Architecture
 

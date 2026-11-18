@@ -49,7 +49,7 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
     const idPrefix = creating ? "new" : `edit-${initial.id}`;
 
     return (
-        <form className="form-card" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
             <div className="field-row">
                 <div className="field">
                     <label className="label" htmlFor={`${idPrefix}-first`}>First name</label>
@@ -80,7 +80,7 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                     <label className="label" htmlFor={`${idPrefix}-password`}>Initial password</label>
                     <input id={`${idPrefix}-password`} className="input" type="password" value={form.password}
                            onChange={update("password")} minLength={6} required />
-                    <p className="hint">The resident uses this to log in. Share it with them directly.</p>
+                    <p className="hint">At least 6 characters. The resident uses it to log in; share it with them directly.</p>
                 </div>
             )}
 
@@ -93,7 +93,7 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                     )}
                     {apartments.map((a) => (
                         <option key={a.id} value={a.id}>
-                            {a.apartmentNumber} · floor {a.floor} · {a.buildingName}
+                            {a.apartmentNumber} · {a.buildingName} · floor {a.floor}
                         </option>
                     ))}
                 </select>
@@ -118,7 +118,7 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                 <button className="btn" type="submit" disabled={submitting}>
                     {submitting ? "Saving…" : creating ? "Add resident" : "Save changes"}
                 </button>
-                <button className="btn-link" type="button" onClick={onCancel}>Cancel</button>
+                <button className="btn btn--secondary" type="button" onClick={onCancel}>Cancel</button>
             </div>
         </form>
     );

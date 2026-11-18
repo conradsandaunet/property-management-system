@@ -3,6 +3,8 @@ package org.conrad.residentservice.service;
 import org.conrad.residentservice.dto.BuildingRequest;
 import org.conrad.residentservice.dto.BuildingResponse;
 import org.conrad.residentservice.model.Building;
+import org.conrad.residentservice.model.BuildingFacade;
+import org.conrad.residentservice.repository.BuildingFacadeRepository;
 import org.conrad.residentservice.repository.BuildingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class BuildingService {
@@ -21,16 +24,19 @@ public class BuildingService {
     private static final int MAX_NAME_LENGTH = 255;
 
     private final BuildingRepository buildingRepository;
+    private final BuildingFacadeRepository facadeRepository;
 
-    public BuildingService(BuildingRepository buildingRepository) {
+    public BuildingService(BuildingRepository buildingRepository, BuildingFacadeRepository facadeRepository) {
         this.buildingRepository = buildingRepository;
+        this.facadeRepository = facadeRepository;
     }
 
     @Transactional(readOnly = true)
     public List<BuildingResponse> getAll() {
+        Set<Long> withFacade = facadeRepository.findBuildingIds();
         return buildingRepository.findAll().stream()
                 .sorted(Comparator.comparing(Building::getName, String.CASE_INSENSITIVE_ORDER))
-                .map(this::toResponse)
+                .map(b -> toResponse(b, withFacade.contains(b.getId())))
                 .toList();
     }
 
@@ -96,7 +102,49 @@ public class BuildingService {
         return trimmed;
     }
 
+    // ---- facade photo ----
+
+    @Transactional(readOnly = true)
+    public BuildingFacade getFacade(Long buildingId) {
+        return facadeRepository.findById(buildingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Building has no facade photo"));
+    }
+
+    /** Sets or replaces the facade photo. Same checks as apartment photos (type from the bytes, size). */
+    @Transactional
+    public void setFacade(String actor, Long buildingId, String fileName, byte[] data) {
+        require(buildingId);
+        if (data == null || data.length == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The file is empty");
+        }
+        if (data.length > ApartmentPhotoService.MAX_BYTES) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "The photo must be at most 5 MB");
+        }
+        String contentType = ApartmentPhotoService.sniffImageType(data);
+        if (contentType == null) {
+            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Only JPEG, PNG and WebP images are allowed");
+        }
+        facadeRepository.save(BuildingFacade.builder()
+                .buildingId(buildingId)
+                .fileName(fileName == null || fileName.isBlank() ? "facade" : fileName)
+                .contentType(contentType)
+                .sizeBytes(data.length)
+                .data(data)
+                .build());
+        log.info("Board member (residentId={}) set the facade photo of buildingId={}", actor, buildingId);
+    }
+
+    @Transactional
+    public void removeFacade(String actor, Long buildingId) {
+        facadeRepository.delete(getFacade(buildingId));
+        log.info("Board member (residentId={}) removed the facade photo of buildingId={}", actor, buildingId);
+    }
+
     private BuildingResponse toResponse(Building building) {
-        return new BuildingResponse(building.getId(), building.getName(), building.getApartments().size());
+        return toResponse(building, building.getId() != null && facadeRepository.existsById(building.getId()));
+    }
+
+    private BuildingResponse toResponse(Building building, boolean hasFacade) {
+        return new BuildingResponse(building.getId(), building.getName(), building.getApartments().size(), hasFacade);
     }
 }

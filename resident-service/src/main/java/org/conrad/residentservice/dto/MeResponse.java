@@ -11,6 +11,7 @@ public record MeResponse(
         Long apartmentId,
         String apartmentNumber,
         Integer floor,
+        Long buildingId,
         String buildingName
 ) {
 }
