@@ -27,9 +27,9 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [x] 🟡 As a resident, I want to see a history of previous invoices, so that I can check whether I've paid for past months.
 
 ### Board / Property Manager
-- [ ] 🔴 As a property manager, I want to generate monthly invoices for all apartments, so that I don't have to create them manually one by one.
-- [ ] 🔴 As a property manager, I want to see an overview of payment status (paid / pending / overdue) for the whole building, so that I can follow up on outstanding payments.
-- [ ] 🟡 As a property manager, I want to manually mark an invoice as paid, so that I can handle payments made outside the system (e.g. a bank transfer registered externally).
+- [x] 🔴 As a property manager, I want to generate monthly invoices for all apartments, so that I don't have to create them manually one by one.
+- [x] 🔴 As a property manager, I want to see an overview of payment status (paid / pending / overdue) for the whole building, so that I can follow up on outstanding payments.
+- [x] 🟡 As a property manager, I want to manually mark an invoice as paid, so that I can handle payments made outside the system (e.g. a bank transfer registered externally).
 
 ## 2.3 Maintenance Service
 
