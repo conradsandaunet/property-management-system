@@ -12,6 +12,7 @@ export const NAV_ITEMS = {
         { label: "Overview", to: "/board/overview" },
         { label: "Residents", to: "/board/residents" },
         { label: "Apartments", to: "/board/apartments" },
+        { label: "Buildings", to: "/board/buildings" },
         { label: "Maintenance", to: "/board/maintenance" },
         { label: "Invoices", to: "/board/invoices" },
         { label: "Resources", to: "/board/resources" },

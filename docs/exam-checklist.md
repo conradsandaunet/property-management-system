@@ -89,7 +89,7 @@ Prioritet i parentes: must-have, should-have, nice-to-have.
 
 ### Status per tjeneste
 
-- [x] **Resident:** alle must-have/should-have-historier ferdig, inkl. leiligheter (legge til, endre, fjerne), å legge til/flytte beboere fra leilighetssiden og bilder av leiligheter (opplasting og sletting, lagret i resident-db). Eneste gjenværende: flere bygninger (nice-to-have)
+- [x] **Resident:** alle must-have/should-have-historier ferdig, inkl. leiligheter (legge til, endre, fjerne), å legge til/flytte beboere fra leilighetssiden og bilder av leiligheter (opplasting og sletting, lagret i resident-db). og flere bygninger (legge til, endre navn, fjerne, og velge bygning per leilighet)
 - [ ] **Maintenance:** beboer oppretter og følger forespørsler, board tildeler arbeider, arbeider logger inn, ser egne oppdrag og endrer status (frontend finnes), `MaintenanceCompleted`-event publiseres
   - [ ] Merk av arbeider-historiene og event-historien i `requirements.md` (de er laget men står som ikke krysset av)
   - [ ] Should-have: kommentarer (beboer og arbeider), board overstyrer prioritet/status
@@ -109,7 +109,7 @@ Prioritet i parentes: must-have, should-have, nice-to-have.
 - [x] Reservation (beboer og board)
 - [x] Varsler fra Kafka-eventet (beboer)
 - [ ] Gå gjennom at billing- og reservation-sidene fungerer mot seedede data (som board og beboer)
-- [ ] Beslutte hva som kuttes (nice-to-have: flere bygninger, fullførte oppdrag for arbeider) og begrunne i refleksjonsdokumentet
+- [ ] Beslutte hva som kuttes (nice-to-have: fullførte oppdrag for arbeider) og begrunne i refleksjonsdokumentet
 
 ### Dokumenter som skal leveres
 

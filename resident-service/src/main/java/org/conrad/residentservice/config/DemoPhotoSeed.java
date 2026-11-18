@@ -12,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,7 +46,9 @@ public class DemoPhotoSeed implements ApplicationRunner {
         this.photoService = photoService;
     }
 
+    // One transaction for the whole run: apartment.getBuilding() is lazy and needs an open session.
     @Override
+    @Transactional
     public void run(ApplicationArguments args) throws IOException {
         if (photoRepository.count() > 0) {
             return;
@@ -61,7 +64,7 @@ public class DemoPhotoSeed implements ApplicationRunner {
         int added = 0;
         for (var apartment : apartmentRepository.findAll()) {
             // Only the demo apartments: the ids in the file names mean nothing in a database with other data.
-            if (!DemoResidentSeed.BUILDING.equals(apartment.getBuildingName())) {
+            if (!BoardAccountSeed.BUILDING.equals(apartment.getBuilding().getName())) {
                 continue;
             }
             for (Resource file : files) {

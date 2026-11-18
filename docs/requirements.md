@@ -17,7 +17,7 @@ Priority: 🔴 Must-have (MVP) · 🟡 Should-have (if time) · ⚪ Nice-to-have
 - [x] 🔴 As a board member, I want to add, edit, and remove apartments (number, floor, building name), so that new units can be registered before residents move in.
 - [x] 🟡 As a board member, I want to search for a resident by name or apartment number, so that I can quickly find the right information.
 - [x] ⚪ As a board member, I want to upload and remove photos of an apartment, so that the registry shows what each unit looks like.
-- [ ] ⚪ As a board member, I want to add, edit, and remove buildings, so that the system can support more than one building.
+- [x] ⚪ As a board member, I want to add, edit, and remove buildings, so that the system can support more than one building.
 
 ## 2.2 Billing Service
 

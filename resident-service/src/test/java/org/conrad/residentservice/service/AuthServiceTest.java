@@ -39,7 +39,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        apartment = Apartment.builder().id(10L).apartmentNumber("A1").floor(3).buildingName("Main").build();
+        apartment = Apartment.builder().id(10L).apartmentNumber("A1").floor(3).building(org.conrad.residentservice.model.Building.builder().id(1L).name("Main").build()).build();
     }
 
     private Resident resident(boolean active) {

@@ -4,6 +4,6 @@ package org.conrad.residentservice.dto;
 public record ApartmentUpdateRequest(
         String apartmentNumber,
         Integer floor,
-        String buildingName
+        Long buildingId
 ) {
 }

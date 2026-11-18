@@ -1,8 +1,10 @@
 package org.conrad.residentservice.config;
 
 import org.conrad.residentservice.model.Apartment;
+import org.conrad.residentservice.model.Building;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
+import org.conrad.residentservice.repository.BuildingRepository;
 import org.conrad.residentservice.repository.ResidentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,21 +33,24 @@ import java.util.List;
 public class DemoResidentSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoResidentSeed.class);
-    static final String BUILDING = "Solsiden Borettslag";
+    private static final String SECOND_BUILDING = "Havneparken";
 
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;
+    private final BuildingRepository buildingRepository;
     private final PasswordEncoder passwordEncoder;
     private final String residentPassword;
 
     public DemoResidentSeed(
             ResidentRepository residentRepository,
             ApartmentRepository apartmentRepository,
+            BuildingRepository buildingRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.resident-password}") String residentPassword
     ) {
         this.residentRepository = residentRepository;
         this.apartmentRepository = apartmentRepository;
+        this.buildingRepository = buildingRepository;
         this.passwordEncoder = passwordEncoder;
         this.residentPassword = residentPassword;
     }
@@ -56,13 +61,20 @@ public class DemoResidentSeed implements ApplicationRunner {
             return;
         }
 
-        // Apartment 1 (101) already exists for the board account: ids 2-6 are the new ones.
+        Building main = buildingRepository.findByNameIgnoreCase(BoardAccountSeed.BUILDING).orElseThrow();
+        Building second = buildingRepository.save(Building.builder().name(SECOND_BUILDING).build());
+
+        // Apartment 1 (101) already exists for the board account: ids 2-6 are the rest of the main
+        // building, 7-8 are vacant apartments in the second one (same numbers, so numbers are only
+        // unique per building).
         List<Apartment> apartments = new ArrayList<>();
-        apartments.add(apartment("102", 1));
-        apartments.add(apartment("201", 2));
-        apartments.add(apartment("202", 2));
-        apartments.add(apartment("301", 3));
-        apartments.add(apartment("302", 3));
+        apartments.add(apartment("102", 1, main));
+        apartments.add(apartment("201", 2, main));
+        apartments.add(apartment("202", 2, main));
+        apartments.add(apartment("301", 3, main));
+        apartments.add(apartment("302", 3, main));
+        apartments.add(apartment("101", 1, second));
+        apartments.add(apartment("102", 1, second));
         apartmentRepository.saveAll(apartments);
 
         residentRepository.save(resident("Kari", "Nordmann", "kari@example.com", "91000001", apartments.get(0)));
@@ -73,11 +85,11 @@ public class DemoResidentSeed implements ApplicationRunner {
         residentRepository.save(resident("Emil", "Dahl", "emil@example.com", "91000006", apartments.get(3)));
         residentRepository.save(resident("Nora", "Vik", "nora@example.com", "91000007", apartments.get(4)));
 
-        log.info("Seeded 5 demo apartments and 7 demo residents (password: {})", residentPassword);
+        log.info("Seeded 7 demo apartments in 2 buildings and 7 demo residents (password: {})", residentPassword);
     }
 
-    private Apartment apartment(String number, int floor) {
-        return Apartment.builder().apartmentNumber(number).floor(floor).buildingName(BUILDING).build();
+    private Apartment apartment(String number, int floor, Building building) {
+        return Apartment.builder().apartmentNumber(number).floor(floor).building(building).build();
     }
 
     private Resident resident(String first, String last, String email, String phone, Apartment apartment) {

@@ -1,8 +1,10 @@
 package org.conrad.residentservice.config;
 
 import org.conrad.residentservice.model.Apartment;
+import org.conrad.residentservice.model.Building;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
+import org.conrad.residentservice.repository.BuildingRepository;
 import org.conrad.residentservice.repository.ResidentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,20 +21,24 @@ public class BoardAccountSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BoardAccountSeed.class);
     private static final String SEED_EMAIL = "board@example.com";
+    static final String BUILDING = "Solsiden Borettslag";
 
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;
+    private final BuildingRepository buildingRepository;
     private final PasswordEncoder passwordEncoder;
     private final String seedPassword;
 
     public BoardAccountSeed(
             ResidentRepository residentRepository,
             ApartmentRepository apartmentRepository,
+            BuildingRepository buildingRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.board-password}") String seedPassword
     ) {
         this.residentRepository = residentRepository;
         this.apartmentRepository = apartmentRepository;
+        this.buildingRepository = buildingRepository;
         this.passwordEncoder = passwordEncoder;
         this.seedPassword = seedPassword;
     }
@@ -43,10 +49,13 @@ public class BoardAccountSeed implements ApplicationRunner {
             return;
         }
 
+        Building building = buildingRepository.findByNameIgnoreCase(BUILDING)
+                .orElseGet(() -> buildingRepository.save(Building.builder().name(BUILDING).build()));
+
         Apartment apartment = Apartment.builder()
                 .apartmentNumber("101")
                 .floor(1)
-                .buildingName("Solsiden Borettslag")
+                .building(building)
                 .build();
         apartmentRepository.save(apartment);
 

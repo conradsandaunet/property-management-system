@@ -6,6 +6,7 @@ import org.conrad.residentservice.dto.ApartmentUpdateRequest;
 import org.conrad.residentservice.dto.ResidentSummaryResponse;
 import org.conrad.residentservice.dto.BuildingOverviewResponse;
 import org.conrad.residentservice.model.Apartment;
+import org.conrad.residentservice.model.Building;
 import org.conrad.residentservice.model.Resident;
 import org.conrad.residentservice.repository.ApartmentRepository;
 import org.slf4j.Logger;
@@ -22,14 +23,16 @@ public class ApartmentService {
 
     private static final Logger log = LoggerFactory.getLogger(ApartmentService.class);
     private static final int MAX_NUMBER_LENGTH = 10;
-    private static final int MAX_BUILDING_LENGTH = 255;
 
     private final ApartmentRepository apartmentRepository;
     private final ResidentService residentService;
+    private final BuildingService buildingService;
 
-    public ApartmentService(ApartmentRepository apartmentRepository, ResidentService residentService) {
+    public ApartmentService(ApartmentRepository apartmentRepository, ResidentService residentService,
+                            BuildingService buildingService) {
         this.apartmentRepository = apartmentRepository;
         this.residentService = residentService;
+        this.buildingService = buildingService;
     }
 
     @Transactional(readOnly = true)
@@ -55,21 +58,24 @@ public class ApartmentService {
     @Transactional
     public ApartmentResponse create(String actor, ApartmentCreateRequest request) {
         String number = requireText(request.apartmentNumber(), "apartmentNumber", MAX_NUMBER_LENGTH);
-        String building = requireText(request.buildingName(), "buildingName", MAX_BUILDING_LENGTH);
+        if (request.buildingId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "buildingId is required");
+        }
         if (request.floor() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "floor is required");
         }
-        requireUnique(building, number);
+        Building building = buildingService.require(request.buildingId());
+        requireUnique(building.getId(), number);
 
         Apartment apartment = Apartment.builder()
                 .apartmentNumber(number)
                 .floor(request.floor())
-                .buildingName(building)
+                .building(building)
                 .build();
         apartmentRepository.save(apartment);
 
-        log.info("Board member (residentId={}) created apartmentId={} number={} building={}",
-                actor, apartment.getId(), number, building);
+        log.info("Board member (residentId={}) created apartmentId={} number={} buildingId={}",
+                actor, apartment.getId(), number, building.getId());
         return toResponse(apartment);
     }
 
@@ -80,18 +86,18 @@ public class ApartmentService {
         String number = request.apartmentNumber() != null
                 ? requireText(request.apartmentNumber(), "apartmentNumber", MAX_NUMBER_LENGTH)
                 : apartment.getApartmentNumber();
-        String building = request.buildingName() != null
-                ? requireText(request.buildingName(), "buildingName", MAX_BUILDING_LENGTH)
-                : apartment.getBuildingName();
+        Building building = request.buildingId() != null
+                ? buildingService.require(request.buildingId())
+                : apartment.getBuilding();
 
         boolean identityChanged = !number.equalsIgnoreCase(apartment.getApartmentNumber())
-                || !building.equalsIgnoreCase(apartment.getBuildingName());
+                || !building.getId().equals(apartment.getBuilding().getId());
         if (identityChanged) {
-            requireUnique(building, number);
+            requireUnique(building.getId(), number);
         }
 
         apartment.setApartmentNumber(number);
-        apartment.setBuildingName(building);
+        apartment.setBuilding(building);
         if (request.floor() != null) {
             apartment.setFloor(request.floor());
         }
@@ -125,10 +131,10 @@ public class ApartmentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Apartment not found"));
     }
 
-    private void requireUnique(String building, String number) {
-        if (apartmentRepository.existsByBuildingNameIgnoreCaseAndApartmentNumberIgnoreCase(building, number)) {
+    private void requireUnique(Long buildingId, String number) {
+        if (apartmentRepository.existsByBuildingIdAndApartmentNumberIgnoreCase(buildingId, number)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Apartment " + number + " already exists in " + building);
+                    "Apartment " + number + " already exists in this building");
         }
     }
 
@@ -149,7 +155,8 @@ public class ApartmentService {
                 apartment.getId(),
                 apartment.getApartmentNumber(),
                 apartment.getFloor(),
-                apartment.getBuildingName(),
+                apartment.getBuilding().getId(),
+                apartment.getBuilding().getName(),
                 (int) apartment.getResidents().stream().filter(Resident::isActive).count()
         );
     }

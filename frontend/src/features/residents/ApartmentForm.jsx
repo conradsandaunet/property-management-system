@@ -2,12 +2,12 @@ import { useState } from "react";
 import Notice from "../../components/Notice";
 import { describeError } from "./errors";
 
-export default function ApartmentForm({ mode, initial, onSubmit, onCancel }) {
+export default function ApartmentForm({ mode, initial, buildings, onSubmit, onCancel }) {
     const creating = mode === "create";
     const [form, setForm] = useState(() => ({
         apartmentNumber: initial?.apartmentNumber ?? "",
         floor: initial?.floor ?? "",
-        buildingName: initial?.buildingName ?? "",
+        buildingId: initial?.buildingId ?? buildings[0]?.id ?? "",
     }));
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export default function ApartmentForm({ mode, initial, onSubmit, onCancel }) {
             await onSubmit({
                 apartmentNumber: form.apartmentNumber,
                 floor: Number(form.floor),
-                buildingName: form.buildingName,
+                buildingId: Number(form.buildingId),
             });
         } catch (err) {
             setError(describeError(err, "Couldn't save the apartment.", {
@@ -51,15 +51,17 @@ export default function ApartmentForm({ mode, initial, onSubmit, onCancel }) {
             </div>
 
             <div className="field">
-                <label className="label" htmlFor={`${idPrefix}-building`}>Building name</label>
-                <input id={`${idPrefix}-building`} className="input" value={form.buildingName}
-                       onChange={update("buildingName")} maxLength={255} required />
+                <label className="label" htmlFor={`${idPrefix}-building`}>Building</label>
+                <select id={`${idPrefix}-building`} className="input" value={form.buildingId}
+                        onChange={update("buildingId")} required>
+                    {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
             </div>
 
             {error && <Notice kind="error">{error}</Notice>}
 
             <div className="form-actions">
-                <button className="btn" type="submit" disabled={submitting}>
+                <button className="btn" type="submit" disabled={submitting || buildings.length === 0}>
                     {submitting ? "Saving…" : creating ? "Add apartment" : "Save changes"}
                 </button>
                 <button className="btn-link" type="button" onClick={onCancel}>Cancel</button>

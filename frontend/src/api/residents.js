@@ -35,6 +35,18 @@ export const updateApartment = (token, id, data) =>
 export const removeApartment = (token, id) =>
     request(`/apartments/${id}`, { token, method: "DELETE" });
 
+export const getBuildings = (token) =>
+    request("/buildings", { token });
+
+export const createBuilding = (token, data) =>
+    request("/buildings", { token, method: "POST", body: data });
+
+export const updateBuilding = (token, id, data) =>
+    request(`/buildings/${id}`, { token, method: "PATCH", body: data });
+
+export const removeBuilding = (token, id) =>
+    request(`/buildings/${id}`, { token, method: "DELETE" });
+
 export const getApartmentResidents = (token, id) =>
     request(`/apartments/${id}/residents`, { token });
 
