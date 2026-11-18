@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Demo maintenance requests in every status. residentId refers to the residents seeded by
- * resident-service (ids 2-8), and the workers come from {@link DevWorkerSeedConfig}.
+ * resident-service (ids 2-8), and the workers come from {@link WorkerSeed}.
  */
 @Component
 @Order(2)

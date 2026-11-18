@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(1)
-public class AdminSeedConfig implements ApplicationRunner {
+public class BoardAccountSeed implements ApplicationRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminSeedConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(BoardAccountSeed.class);
     private static final String SEED_EMAIL = "board@example.com";
 
     private final ResidentRepository residentRepository;
@@ -25,7 +25,7 @@ public class AdminSeedConfig implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final String seedPassword;
 
-    public AdminSeedConfig(
+    public BoardAccountSeed(
             ResidentRepository residentRepository,
             ApartmentRepository apartmentRepository,
             PasswordEncoder passwordEncoder,

@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Demo apartments and residents, so the app isn't empty on first start. Runs after
- * {@link AdminSeedConfig}, which creates the board account in apartment 101.
+ * {@link BoardAccountSeed}, which creates the board account in apartment 101.
  *
  * Other services' demo data refers to the ids created here (apartment 1-6, resident 1-8). They are
  * predictable because everything is inserted in this order into an empty database; that is why
