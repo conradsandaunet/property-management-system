@@ -51,6 +51,22 @@ There are two ways to run the project:
 
 The images are built locally from this repository. They are not published to Docker Hub.
 
+### Running the tests
+
+The backend tests use real Postgres databases, so start them first (Java 21 and Docker are needed):
+
+```bash
+docker compose up -d --wait resident-db billing-db maintenance-db reservation-db
+./mvnw clean test
+```
+
+We chose real Postgres over an in-memory database because several guarantees live in the
+database: the exclusion constraint that stops double bookings, the advisory lock that lets several
+instances seed safely, and the Flyway migrations. Starting the databases by hand is a compromise.
+Testcontainers would be the better solution, since `./mvnw test` would then start its own
+databases. We did not add it because it would change the test setup of every module, and that was
+too risky this late in the project. It is the first thing we would do next.
+
 More: [running the tests](docs/running.md#running-the-tests) and
 [troubleshooting](docs/running.md#troubleshooting).
 

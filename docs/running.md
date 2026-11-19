@@ -106,12 +106,30 @@ the same port.
 ## Running the tests
 
 The backend tests that load a Spring context use real Postgres databases, so start them
-first. Java 21 is required. Then run all modules from the repository root:
+first. Java 21 and Docker are required. Then run all modules from the repository root:
 
 ```bash
-docker compose up -d resident-db billing-db maintenance-db reservation-db
+docker compose up -d --wait resident-db billing-db maintenance-db reservation-db
 ./mvnw clean test
 ```
+
+`--wait` returns when the databases are healthy. The tests expect them on ports 5432 to 5435
+(the ports `docker-compose.yml` publishes, and the ones GitHub Actions uses).
+
+**Why real Postgres and not an in-memory database?** Several guarantees live in the database,
+and an in-memory database such as H2 would pass without proving them: the exclusion constraint that
+stops double bookings (`DoubleBookingTest`), the advisory lock that lets several instances seed
+safely (`SeedLockTest`), and the Flyway migrations themselves. Tests that only use mocks (most
+service tests) do not need a database.
+
+If a database is not running, the tests that load a Spring context fail with
+`Connection to localhost:5432 refused` while the rest pass. Start the databases and run again.
+
+Starting the databases from Docker by hand is a trade-off we accepted. Testcontainers would
+be the better solution: it starts and stops the databases from the test run itself, so
+`./mvnw test` would work on its own. We did not add it because it would change the test setup of
+every module, and we judged that too risky this late in the project. Docker is needed
+either way.
 
 Frontend (Node 22):
 
@@ -131,6 +149,7 @@ checks before a pull request can be merged.
 | In the IDE: `'url' must start with "jdbc"` | `DB_URL`, `DB_USER` or `DB_PASSWORD` is missing in the module's `.env`. Copy them from `.env.example` |
 | In the IDE: the frontend shows `ECONNREFUSED` or `502` for `/api/...` | The gateway is not running on port 8080. Start it (step 4 above) |
 | Port 3000 is busy | Set `FRONTEND_PORT` in `.env` |
+| Tests fail with `Connection to localhost:5432 refused` | The test databases are not running. See [running the tests](#running-the-tests) |
 | Login keeps saying wrong email or password | Logins are limited to 5 per minute. Wait a minute |
 | No demo data after start | The databases already had data. Run `docker compose down -v` and start again |
 | Docker build fails with `parent snapshot ... does not exist` | Corrupt build cache: `docker builder prune -f` and build again |
