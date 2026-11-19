@@ -1,8 +1,10 @@
 package org.conrad.residentservice.dto;
 
-/** Fields left null are not changed. */
+import jakarta.validation.constraints.Size;
+
+/** A field left out (null) is not changed, so these only limit what is sent. */
 public record ApartmentUpdateRequest(
-        String apartmentNumber,
+        @Size(max = 10) String apartmentNumber,
         Integer floor,
         Long buildingId
 ) {

@@ -79,8 +79,8 @@ export default function ResidentForm({ mode, initial, apartments, isSelf = false
                 <div className="field">
                     <label className="label" htmlFor={`${idPrefix}-password`}>Initial password</label>
                     <input id={`${idPrefix}-password`} className="input" type="password" value={form.password}
-                           onChange={update("password")} minLength={6} required />
-                    <p className="hint">At least 6 characters. The resident uses it to log in; share it with them directly.</p>
+                           onChange={update("password")} minLength={8} required />
+                    <p className="hint">At least 8 characters. The resident uses it to log in; share it with them directly.</p>
                 </div>
             )}
 

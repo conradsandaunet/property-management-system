@@ -1,5 +1,6 @@
 package org.conrad.residentservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.residentservice.dto.ApartmentCreateRequest;
 import org.conrad.residentservice.dto.ApartmentResponse;
 import org.conrad.residentservice.dto.ApartmentUpdateRequest;
@@ -43,13 +44,13 @@ public class ApartmentController {
 
     @PostMapping
     @PreAuthorize("hasRole('BOARD')")
-    public ResponseEntity<ApartmentResponse> create(@RequestBody ApartmentCreateRequest request) {
+    public ResponseEntity<ApartmentResponse> create(@Valid @RequestBody ApartmentCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(apartmentService.create(CurrentUser.name(), request));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('BOARD')")
-    public ApartmentResponse update(@PathVariable Long id, @RequestBody ApartmentUpdateRequest request) {
+    public ApartmentResponse update(@PathVariable Long id, @Valid @RequestBody ApartmentUpdateRequest request) {
         return apartmentService.update(CurrentUser.name(), id, request);
     }
 

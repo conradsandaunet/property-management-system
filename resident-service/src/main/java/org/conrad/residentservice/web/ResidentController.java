@@ -1,5 +1,6 @@
 package org.conrad.residentservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.residentservice.dto.HouseholdMemberResponse;
 import org.conrad.residentservice.dto.ResidentBoardUpdateRequest;
 import org.conrad.residentservice.dto.ResidentCreateRequest;
@@ -25,7 +26,7 @@ public class ResidentController {
 
     @PostMapping
     @PreAuthorize("hasRole('BOARD')")
-    public ResponseEntity<Void> create(@RequestBody ResidentCreateRequest request) {
+    public ResponseEntity<Void> create(@Valid @RequestBody ResidentCreateRequest request) {
         residentService.create(CurrentUser.name(), request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -36,13 +37,13 @@ public class ResidentController {
     }
 
     @PatchMapping("/me")
-    public ResidentSummaryResponse updateMe(@RequestBody ResidentUpdateRequest request) {
+    public ResidentSummaryResponse updateMe(@Valid @RequestBody ResidentUpdateRequest request) {
         return residentService.updateOwnContact(CurrentUser.requireResidentId(), request);
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('BOARD')")
-    public ResidentSummaryResponse update(@PathVariable Long id, @RequestBody ResidentBoardUpdateRequest request) {
+    public ResidentSummaryResponse update(@PathVariable Long id, @Valid @RequestBody ResidentBoardUpdateRequest request) {
         return residentService.update(CurrentUser.name(), id, request);
     }
 

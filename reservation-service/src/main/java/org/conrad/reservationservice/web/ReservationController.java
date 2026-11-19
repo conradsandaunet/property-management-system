@@ -1,5 +1,6 @@
 package org.conrad.reservationservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.reservationservice.dto.ReservationCreateRequest;
 import org.conrad.reservationservice.dto.ReservationResponse;
 import org.conrad.reservationservice.model.Reservation;
@@ -22,7 +23,7 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> reserve(@RequestBody ReservationCreateRequest request) {
+    public ResponseEntity<ReservationResponse> reserve(@Valid @RequestBody ReservationCreateRequest request) {
         Reservation reservation = reservationService.reserve(
                 request.resourceId(),
                 currentResidentId(),

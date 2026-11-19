@@ -1,9 +1,11 @@
 package org.conrad.reservationservice.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 
 public record BlockResourceRequest(
-        LocalDateTime from,
-        LocalDateTime to
+        @NotNull LocalDateTime from,
+        @NotNull LocalDateTime to
 ) {
 }

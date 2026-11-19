@@ -80,6 +80,16 @@ Authentication uses JWT tokens signed with a secret shared by all services:
 - Logins are limited per client address (default 5 per minute). The counter lives in memory,
   so it is per gateway instance.
 
+Input validation is split in two. The shape of a request (required fields, not blank, length,
+email format) is written as Bean Validation annotations on the request records, with `@Valid` on
+the controller, so bad input is answered with `400` before a service runs. The limits match the
+database columns, and passwords must be 8 to 72 characters (BCrypt only uses the first 72 bytes).
+Rules that depend on data stay in the services: whether something exists, conflicts such as a
+taken email or a booked slot, and time rules. Maintenance has used this approach from the start.
+Resident and reservation were validated by hand in the services, which left gaps (creating a
+resident and signing in were not checked), so the annotations were added there, and the older
+checks in the services were left in place as a second line of defence.
+
 ## Data ownership
 
 Each service has its own Postgres database, with the schema managed by Flyway migrations

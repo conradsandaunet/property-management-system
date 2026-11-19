@@ -1,5 +1,6 @@
 package org.conrad.reservationservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.reservationservice.dto.BlockResourceRequest;
 import org.conrad.reservationservice.dto.ResourceResponse;
 import org.conrad.reservationservice.dto.SlotResponse;
@@ -65,7 +66,7 @@ public class ResourceController {
     /** Block the resource for a period, e.g. {"from": "2026-11-20T08:00", "to": "2026-11-25T22:00"}. */
     @PostMapping("/{id}/block")
     @PreAuthorize("hasRole('BOARD')")
-    public ResponseEntity<ResourceResponse> block(@PathVariable Long id, @RequestBody BlockResourceRequest request) {
+    public ResponseEntity<ResourceResponse> block(@PathVariable Long id, @Valid @RequestBody BlockResourceRequest request) {
         Resource updated = resourceService.block(id, request.from(), request.to());
         return ResponseEntity.ok(toResponse(updated));
     }
