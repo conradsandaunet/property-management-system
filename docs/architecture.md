@@ -4,7 +4,7 @@ The system is split into four business services behind a single gateway. Each se
 its data and is deployed as its own container. This document describes the services, how
 they communicate, and how a request moves through the system.
 
-![Architecture diagram: the frontend and gateway route requests to four services, each with its own database. Billing calls resident over REST, and maintenance publishes events to Kafka, which resident consumes.](images/diagram.png)
+![Architecture diagram: the frontend and gateway route requests to four services, each with its own database. Billing and maintenance call resident over REST, and maintenance publishes events to Kafka, which resident consumes.](images/diagram.png)
 
 Solid blue arrows are synchronous calls (REST and database access). Dashed yellow arrows are
 asynchronous events sent through Kafka.
@@ -16,6 +16,8 @@ asynchronous events sent through Kafka.
 - [Request flow and security](#request-flow-and-security)
 - [Data ownership](#data-ownership)
 - [Service discovery and configuration](#service-discovery-and-configuration)
+- [When a service is slow or down](#when-a-service-is-slow-or-down)
+- [Load balancing and several instances](#load-balancing-and-several-instances)
 - [Event flow: MaintenanceCompleted](#event-flow-maintenancecompleted)
 - [Known limitations](#known-limitations)
 
@@ -43,11 +45,17 @@ reachable inside the Docker network only, so no request can skip the JWT check.
 | Synchronous (REST) | browser | frontend, then gateway | Every user action goes through the gateway |
 | Synchronous (REST) | gateway | the four services | Routing by path, using `lb://<service-name>` |
 | Synchronous (REST) | billing-service | resident-service | Billing needs the apartments and the signed-in resident to generate and show invoices |
+| Synchronous (REST) | maintenance-service | resident-service | When a resident reports an issue, maintenance looks up their apartment (forwarding the resident's own token) and stores it on the request, so workers see where to go |
 | Synchronous (JDBC) | each service | its own database | Each service reads and writes only its own data |
 | Asynchronous (Kafka) | maintenance-service | resident-service | A completed request notifies the resident without the two services depending on each other |
 
-The synchronous call from billing to resident uses a service token. The asynchronous flow is
-described in detail [below](#event-flow-maintenancecompleted).
+The synchronous call from billing to resident uses a service token. The call from maintenance
+to resident forwards the resident's own token, and if resident-service cannot be reached the
+request is still saved, without an apartment. The asynchronous flow is described in detail
+[below](#event-flow-maintenancecompleted).
+
+reservation-service makes no calls to other services. It identifies the user from the JWT and
+stores only the resident id, so it can run, scale and fail independently.
 
 ## Request flow and security
 
@@ -109,6 +117,24 @@ The settings live in `consul-config/gateway.yml` and `consul-config/billing-serv
 can be changed without rebuilding. Everything else between services is asynchronous (Kafka),
 which keeps working when the receiver is down: the message waits on the topic.
 
+Try it: `docker compose stop billing-service`, open Billing as the board (a message appears,
+the rest of the app works), then `docker compose start billing-service` and press "Try again".
+
+## Load balancing and several instances
+
+Run two copies of the reservation service and the gateway spreads requests over them:
+
+```bash
+docker compose up -d --scale reservation-service=2
+```
+
+- Both instances appear under *Services* in the Consul UI (http://localhost:8500).
+- Use the Reservations page and watch `docker compose logs -f reservation-service`: the log
+  prefix alternates between `reservation-service-1` and `reservation-service-2`.
+- Booking stays safe with several instances, because the database refuses overlapping
+  reservations for the same resource.
+- The login rate limit is kept per gateway instance, so run one gateway.
+
 ## Event flow: MaintenanceCompleted
 
 When a worker completes a maintenance request, the resident is notified asynchronously
@@ -151,6 +177,13 @@ Example message:
 
 ```json
 {"requestId":3,"residentId":2,"workerId":1,"completedAt":"2026-11-02T15:33:34.063323254Z"}
+```
+
+To see the messages on the topic:
+
+```bash
+docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 --topic maintenance.completed --from-beginning
 ```
 
 Design choices:
