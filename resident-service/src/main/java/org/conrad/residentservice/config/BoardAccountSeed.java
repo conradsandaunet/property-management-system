@@ -78,6 +78,7 @@ public class BoardAccountSeed implements ApplicationRunner {
                 .build();
         residentRepository.save(board);
 
-        log.info("Seeded initial board account: email={}, password={}", SEED_EMAIL, seedPassword);
+        // The password comes from BOARD_SEED_PASSWORD in .env, so it is deliberately not logged.
+        log.info("Seeded initial board account: email={}", SEED_EMAIL);
     }
 }

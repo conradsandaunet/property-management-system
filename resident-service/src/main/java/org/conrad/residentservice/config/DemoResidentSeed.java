@@ -94,7 +94,7 @@ public class DemoResidentSeed implements ApplicationRunner {
         residentRepository.save(resident("Emil", "Dahl", "emil@example.com", "91000006", apartments.get(3)));
         residentRepository.save(resident("Nora", "Vik", "nora@example.com", "91000007", apartments.get(4)));
 
-        log.info("Seeded 7 demo apartments in 2 buildings and 7 demo residents (password: {})", residentPassword);
+        log.info("Seeded 7 demo apartments in 2 buildings and 7 demo residents");
     }
 
     private Apartment apartment(String number, int floor, Building building) {
