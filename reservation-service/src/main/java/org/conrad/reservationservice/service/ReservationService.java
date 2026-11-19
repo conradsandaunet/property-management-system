@@ -6,6 +6,7 @@ import org.conrad.reservationservice.model.ReservationStatus;
 import org.conrad.reservationservice.model.Resource;
 import org.conrad.reservationservice.repository.ReservationRepository;
 import org.conrad.reservationservice.repository.ResourceRepository;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -60,9 +61,12 @@ public class ReservationService {
 
         // The check above can race with another request or instance; the database's exclusion
         // constraint is the real guarantee, so translate its rejection into the same 409.
+        // When several requests insert the same slot at once, Postgres can also abort one of them
+        // with a deadlock instead of a constraint violation (a ConcurrencyFailureException). The
+        // winner holds an overlapping reservation, so that request lost the slot too.
         try {
             return reservationRepository.saveAndFlush(reservation);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException | ConcurrencyFailureException e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Time slot already booked");
         }
     }
