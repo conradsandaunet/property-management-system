@@ -123,6 +123,32 @@ Details are in [docs/architecture.md](docs/architecture.md): the services and th
 gateway routes and security, Consul, what happens when a service is slow or down, load balancing
 and the Kafka event flow.
 
+### Scaling
+
+Resident, billing, maintenance and reservation can each run as several instances. Every instance
+registers in Consul, and the gateway spreads requests over the healthy ones. Scaling is manual:
+`docker compose up -d --scale <service>=N` adds instances, but nothing adds them when the load
+grows (that would need an autoscaler, for example Kubernetes).
+
+**We have tested it.** `scripts/scaling-demo.sh` starts three instances of a service, sends 60
+requests through the gateway and counts which instance answered (every response carries an
+`X-Served-By` header). Then it stops one instance and repeats the calls. With
+reservation-service the load was spread evenly, 20 requests to each of three instances, and after
+one instance was stopped the other two took 30 each, so requests were not sent to the stopped one.
+
+![Output of scripts/scaling-demo.sh: three healthy reservation-service instances each answer 20 of 60 requests (33.3%). After one is stopped, the remaining two answer 30 each (50%).](docs/images/scaling_test.png)
+
+Run it yourself once the system is up (see [Build, start and run](#2-build-start-and-run)):
+
+```bash
+./scripts/scaling-demo.sh reservation-service 3 --kill-one
+```
+
+You can replace `reservation-service` with another service, and see the instances in Consul at
+http://localhost:8500. Scale back with `docker compose up -d --scale reservation-service=1`. How
+it stays safe with several instances (seeding, double booking, events) is in
+[docs/architecture.md](docs/architecture.md#running-several-instances).
+
 ## 5. Team and contributions
 
 | Member | Main responsibilities                                                                                                                                                                                                            |
@@ -160,7 +186,7 @@ passing CI.
   when it is published.
 - Consul runs in dev mode (in memory), and the login rate limit is kept per gateway instance, so run
   one gateway.
-- Only reservation-service is prepared for several instances.
+- Scaling is manual, and the gateway runs as one instance. See [Scaling](#scaling).
 - Workers are created through the demo data or the API (`POST /workers`). There is no screen for it.
 - One user story is not implemented: the board cannot override the priority or status of a request.
 

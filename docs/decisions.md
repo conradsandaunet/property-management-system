@@ -50,7 +50,9 @@ kept things simpler than a real system would. A short version is in the
   start, so nothing is lost.
 - **The login rate limit is kept in memory per gateway instance**, so only one gateway should
   run.
-- **Only reservation-service is prepared and demonstrated with several instances.**
+- **Scaling is manual.** All four services can run as several instances
+  (`docker compose up --scale`), and `scripts/scaling-demo.sh` shows the spread, but nothing adds
+  instances when the load grows.
 - **Notifications are fetched by polling every 30 seconds** instead of being pushed.
 - **A token lives for 60 minutes and cannot be revoked**, so a deactivated resident keeps access
   until it expires.
