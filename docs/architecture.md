@@ -85,9 +85,29 @@ of what it needs from an event, in the `notification` table.
 Every service and the gateway register in Consul. The gateway has no hard-coded service
 addresses and looks up healthy instances instead, which also lets it spread requests over
 several instances of the same service. Shared, non-secret settings (the JWT lifetime, the
-Kafka topic name and the login rate limit) are loaded from Consul's key/value store.
-Secrets and per-environment addresses stay in environment variables. See the
-[README](../README.md) for how to open the Consul UI and run several instances.
+Kafka topic name, the login rate limit, the gateway's allowed CORS origins and the timeout and
+circuit breaker settings below) are loaded from Consul's key/value store. Secrets and
+per-environment addresses stay in environment variables. See the [README](../README.md) for how
+to open the Consul UI and run several instances.
+
+## When a service is slow or down
+
+A call to another service can fail in three ways: the service is gone, it hangs, or it answers
+with an error. Each synchronous call path handles them the same way:
+
+| Protection | Gateway to the services | billing-service to resident-service |
+|---|---|---|
+| **Timeouts** | 2 s to connect, 10 s to answer (`spring.http.client.*`) | 2 s to connect, 5 s to answer |
+| **Retry** | Up to two more attempts, **GET requests only**. A write is never repeated, since it could happen twice. | Up to two more attempts with a growing pause. All calls are reads. |
+| **Circuit breaker** | One per route. When half of the last ten calls failed or timed out, it answers `503` with `Retry-After` at once for 10 s, then lets two trial calls through. | The same idea in the client. |
+| **When it still fails** | The browser gets `503` with a short JSON message, and the other services keep working. | `502` for generating invoices, which needs the apartment list. The PDF and apartment numbers fall back to a plain label instead of failing. |
+
+A real answer from a working service, such as 401 or 404, is neither retried nor counted as a
+failure. The frontend repeats a failed read up to three times by itself (connection errors and
+502/503/504), and a section that still can't load shows "Try again" instead of staying empty.
+The settings live in `consul-config/gateway.yml` and `consul-config/billing-service.yml`, so they
+can be changed without rebuilding. Everything else between services is asynchronous (Kafka),
+which keeps working when the receiver is down: the message waits on the topic.
 
 ## Event flow: MaintenanceCompleted
 
@@ -158,3 +178,6 @@ Design choices:
 - **Notifications are fetched by polling.** The frontend asks every 30 seconds. Server-sent
   events or WebSockets would show them at once.
 - **The login rate limit is per gateway instance**, so run one gateway.
+- **Scaling is manual.** `docker compose up --scale` adds instances and the gateway spreads the
+  load, but nothing adds them when the load grows. That would need metrics and an autoscaler,
+  for example Kubernetes with a Horizontal Pod Autoscaler.

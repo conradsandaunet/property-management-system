@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { RequestStatus } from "../../components/Indicators";
 import FacadeImage from "../../components/FacadeImage";
 import Icon from "../../components/Icon";
+import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
 import Skeleton from "../../components/Skeleton";
 import { useToast } from "../../components/toastContext";
@@ -101,11 +102,13 @@ export default function HomePage() {
                 )}
             </div>
 
+            {invoices.error && <Notice kind="error" onRetry={invoices.reload}>Couldn't load your invoices.</Notice>}
             {invoices.data && <InvoiceBanner invoices={invoices.data} onPay={handlePay} paying={paying} />}
 
             <div className="grid">
                 <DashCard title="Your requests" link={<Link className="btn-link" to="/maintenance?new=1">Report an issue</Link>}>
                     {requests.loading && <Skeleton rows={2} />}
+                    {requests.error && <Notice kind="error" onRetry={requests.reload}>Couldn't load your requests.</Notice>}
                     {requests.data && openRequests.length === 0 && (
                         <p className="muted">No open requests. Report an issue if something needs fixing.</p>
                     )}
@@ -123,6 +126,7 @@ export default function HomePage() {
 
                 <DashCard title="Upcoming bookings" link={<Link className="btn-link" to="/bookings">Book</Link>}>
                     {bookings.loading && <Skeleton rows={2} />}
+                    {bookings.error && <Notice kind="error" onRetry={bookings.reload}>Couldn't load your bookings.</Notice>}
                     {bookings.data && upcoming.length === 0 && (
                         <p className="muted">Nothing booked. Reserve the common room or a guest parking space.</p>
                     )}

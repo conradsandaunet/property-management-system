@@ -21,8 +21,31 @@ function isExpired(token) {
     }
 }
 
+// A read that fails because the connection broke or a service didn't answer (502/503/504) is tried
+// again a couple of times before the page shows an error. Writes are never repeated, since they
+// could be applied twice.
+const RETRY_STATUSES = new Set([502, 503, 504]);
+const MAX_ATTEMPTS = 3;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function send(path, init, token) {
-    const response = await fetch(`${API}${path}`, init);
+    const attempts = (init.method ?? "GET").toUpperCase() === "GET" ? MAX_ATTEMPTS : 1;
+    let response;
+
+    for (let attempt = 1; ; attempt++) {
+        try {
+            response = await fetch(`${API}${path}`, init);
+        } catch {
+            if (attempt >= attempts) throw new ApiError(0, "The server can't be reached");
+            await wait(400 * attempt);
+            continue;
+        }
+        if (RETRY_STATUSES.has(response.status) && attempt < attempts) {
+            await wait(400 * attempt);
+            continue;
+        }
+        break;
+    }
 
     if (token && (response.status == 401 || (response.status == 403 && isExpired(token)))) {
         onUnauthorized();

@@ -68,9 +68,9 @@ function BlockForm({ onSubmit, onCancel }) {
 }
 
 function ResourceBookings({ token, resource, dir }) {
-    const { data, error, loading } = useAsync(() => getReservationsForResource(token, resource.id), [token, resource.id]);
+    const { data, error, loading, reload } = useAsync(() => getReservationsForResource(token, resource.id), [token, resource.id]);
 
-    if (error) return <Notice kind="error">Couldn't load the bookings.</Notice>;
+    if (error) return <Notice kind="error" onRetry={reload}>Couldn't load the bookings.</Notice>;
     if (loading) return <Skeleton rows={3} />;
 
     const upcoming = data
@@ -122,7 +122,7 @@ export default function ResourcesPage() {
         <>
             <PageHeader title="Resources" subtitle="Shared spaces residents can book, and when they're closed." />
 
-            {error && <Notice kind="error">Couldn't load the resources.</Notice>}
+            {error && <Notice kind="error" onRetry={reload}>Couldn't load the resources.</Notice>}
             {loading && <Skeleton rows={4} />}
             {resources && resources.length === 0 && (
                 <EmptyState title="No shared resources">Resources such as guest parking and the common room show up here.</EmptyState>

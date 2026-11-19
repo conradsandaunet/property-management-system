@@ -7,7 +7,7 @@ import { formatDateTime } from "../../lib/format";
 import { useNotifications } from "./useNotifications";
 
 export default function NotificationsPage() {
-    const { items, loading, error, unread, markRead } = useNotifications();
+    const { items, loading, error, unread, markRead, reload } = useNotifications();
     const toast = useToast();
 
     async function markAllRead() {
@@ -28,7 +28,7 @@ export default function NotificationsPage() {
                 )}
             />
 
-            {error && <Notice kind="error">Couldn't load your notifications.</Notice>}
+            {error && <Notice kind="error" onRetry={reload}>Couldn't load your notifications.</Notice>}
             {loading && !error && <Skeleton rows={3} />}
             {!loading && !error && items.length === 0 && (
                 <EmptyState title="You're all caught up">

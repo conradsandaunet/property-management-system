@@ -69,7 +69,7 @@ export default function MaintenanceQueuePage() {
                 </div>
             </div>
 
-            {(requests.error || workers.error) && <Notice kind="error">Couldn't load the maintenance requests.</Notice>}
+            {(requests.error || workers.error) && <Notice kind="error" onRetry={() => { requests.reload(); workers.reload(); }}>Couldn't load the maintenance requests.</Notice>}
             {requests.loading && <Skeleton rows={4} />}
             {requests.data && visible.length === 0 && (
                 <EmptyState title={filter ? "Nothing here" : "No open requests"}>

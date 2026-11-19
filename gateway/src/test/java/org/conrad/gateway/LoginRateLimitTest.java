@@ -21,7 +21,6 @@ class LoginRateLimitTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("CORS_ALLOWED_ORIGINS", () -> "http://localhost:*");
         registry.add("JWT_SECRET", () -> "test-secret-test-secret-test-secret-123456");
     }
 

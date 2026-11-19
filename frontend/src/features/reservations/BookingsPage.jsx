@@ -68,7 +68,7 @@ function BookingFlow({ token, onBooked }) {
         }
     }
 
-    if (resources.error) return <Notice kind="error">Couldn't load the resources.</Notice>;
+    if (resources.error) return <Notice kind="error" onRetry={resources.reload}>Couldn't load the resources.</Notice>;
     if (resources.loading) return <Skeleton rows={2} />;
     if (resources.data.length === 0) return <EmptyState title="Nothing to book yet">The board hasn't added any shared resources.</EmptyState>;
 
@@ -113,7 +113,7 @@ function BookingFlow({ token, onBooked }) {
             <div className="field">
                 <span className="label">3. Choose a time</span>
                 {slots.loading && <Skeleton rows={1} />}
-                {slots.error && <Notice kind="error">Couldn't load the available times.</Notice>}
+                {slots.error && <Notice kind="error" onRetry={slots.reload}>Couldn't load the available times.</Notice>}
                 {slots.data && free.length === 0 && (
                     <Notice>{resource && isBlockedNow(resource)
                         ? `${resource.name} is closed for maintenance.`
@@ -184,7 +184,7 @@ export default function BookingsPage() {
                 <section>
                     <div className="section__head"><h2 className="section__title">Your bookings</h2></div>
                     {mine.loading && <Skeleton rows={2} />}
-                    {mine.error && <Notice kind="error">Couldn't load your bookings.</Notice>}
+                    {mine.error && <Notice kind="error" onRetry={mine.reload}>Couldn't load your bookings.</Notice>}
                     {mine.data && upcoming.length === 0 && (
                         <EmptyState compact>No upcoming bookings.</EmptyState>
                     )}

@@ -100,7 +100,7 @@ export default function BuildingPage() {
         setConfirm(null);
     }
 
-    if (buildings.error) return <Notice kind="error">Couldn't load the building.</Notice>;
+    if (buildings.error) return <Notice kind="error" onRetry={buildings.reload}>Couldn't load the building.</Notice>;
     if (buildings.loading) return <Skeleton rows={4} />;
     if (!building) {
         return (

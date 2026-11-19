@@ -256,7 +256,6 @@ services:
         MODULE: gateway
     environment:
       <<: [*jwt, *consul]
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:*}
     depends_on:
       consul:
         condition: service_healthy

@@ -36,7 +36,7 @@ const byNumber = (a, b) =>
     || a.apartmentNumber.localeCompare(b.apartmentNumber, undefined, { numeric: true });
 
 function BuildingCards({ buildings, apartments, onAdd }) {
-    if (buildings.error) return <Notice kind="error">Couldn't load the buildings.</Notice>;
+    if (buildings.error) return <Notice kind="error" onRetry={buildings.reload}>Couldn't load the buildings.</Notice>;
     if (buildings.loading) return <Skeleton rows={3} />;
     if (buildings.data.length === 0) {
         return (

@@ -82,7 +82,7 @@ export default function AccountPage() {
 
                     <h3 className="section__title" style={{ margin: "18px 0 8px" }}>Household</h3>
                     {household.loading && <Skeleton rows={2} />}
-                    {household.error && <Notice kind="error">Couldn't load your household.</Notice>}
+                    {household.error && <Notice kind="error" onRetry={household.reload}>Couldn't load your household.</Notice>}
                     <ul className="rows">
                         {(household.data ?? []).map((m) => (
                             <li key={m.id} className="row" style={{ justifyContent: "flex-start" }}>

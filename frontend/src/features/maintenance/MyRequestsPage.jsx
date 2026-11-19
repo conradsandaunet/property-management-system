@@ -46,7 +46,7 @@ export default function MyRequestsPage() {
         <>
             <PageHeader title="Maintenance" subtitle="Report problems in your apartment and follow them up." actions={reportButton} />
 
-            {requests.error && <Notice kind="error">Couldn't load your requests.</Notice>}
+            {requests.error && <Notice kind="error" onRetry={requests.reload}>Couldn't load your requests.</Notice>}
             {requests.loading && <Skeleton rows={3} />}
 
             {requests.data && requests.data.length === 0 && (

@@ -123,7 +123,7 @@ export default function ApartmentDetailPage() {
         }
     }
 
-    if (apartments.error) return <Notice kind="error">Couldn't load the apartment.</Notice>;
+    if (apartments.error) return <Notice kind="error" onRetry={apartments.reload}>Couldn't load the apartment.</Notice>;
     if (apartments.loading) return <Skeleton rows={4} />;
     if (!apartment) {
         return (
@@ -167,7 +167,7 @@ export default function ApartmentDetailPage() {
                     </span>
                 </div>
                 {residents.loading && <Skeleton rows={2} />}
-                {residents.error && <Notice kind="error">Couldn't load the residents.</Notice>}
+                {residents.error && <Notice kind="error" onRetry={residents.reload}>Couldn't load the residents.</Notice>}
                 {residents.data && list.length === 0 && (
                     <EmptyState compact>No one lives here yet. Add a new resident or move someone in.</EmptyState>
                 )}

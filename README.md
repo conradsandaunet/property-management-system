@@ -164,6 +164,14 @@ The *Services* page shows each instance's health check (`/actuator/health`). The
 read by the services at start-up. Secrets (`JWT_SECRET`, database passwords) stay in `.env`.
 If Consul is unavailable, a service still starts with built-in defaults.
 
+**When a service is down or slow:** the gateway and billing-service give up on a call after a
+timeout, repeat reads once or twice, and open a circuit breaker while a service keeps failing, so the
+caller answers `503` at once instead of hanging. The other services keep working, and the pages
+that can't load show a "Try again" button. Try it: `docker compose stop billing-service`, open
+Billing as the board (a message appears, the rest of the app works), then
+`docker compose start billing-service` and press "Try again". Details are in
+[docs/architecture.md](docs/architecture.md#when-a-service-is-slow-or-down).
+
 **Load balancing:** run two copies of the reservation service and the gateway spreads
 requests over them.
 

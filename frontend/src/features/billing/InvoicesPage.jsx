@@ -52,7 +52,7 @@ export default function InvoicesPage() {
         <>
             <PageHeader title="Invoices" subtitle="Monthly shared costs for your apartment." />
 
-            {error && <Notice kind="error">Couldn't load your invoices.</Notice>}
+            {error && <Notice kind="error" onRetry={reload}>Couldn't load your invoices.</Notice>}
             {loading && <Skeleton rows={4} />}
             {invoices && invoices.length === 0 && (
                 <EmptyState title="No invoices yet">Your monthly invoice will show up here.</EmptyState>
