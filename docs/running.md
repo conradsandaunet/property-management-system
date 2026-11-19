@@ -116,6 +116,11 @@ docker compose up -d --wait resident-db billing-db maintenance-db reservation-db
 `--wait` returns when the databases are healthy. The tests expect them on ports 5432 to 5435
 (the ports `docker-compose.yml` publishes, and the ones GitHub Actions uses).
 
+The tests use the same databases as the application. If you run them before you have started the
+system for the first time, they create the board account and the workers with the same passwords
+as in `.env.example`, so you can still log in as described in the README. To start from scratch
+with empty databases and fresh demo data, run `docker compose down -v` first.
+
 **Why real Postgres and not an in-memory database?** Several guarantees live in the database,
 and an in-memory database such as H2 would pass without proving them: the exclusion constraint that
 stops double bookings (`DoubleBookingTest`), the advisory lock that lets several instances seed
