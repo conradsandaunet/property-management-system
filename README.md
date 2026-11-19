@@ -9,6 +9,7 @@ A microservices-based system for a housing cooperative. Built for the PG3402 Mic
 3. [User stories](#3-user-stories)
 4. [Architecture](#4-architecture)
 5. [Team and contributions](#5-team-and-contributions)
+6. [Decisions, assumptions and simplifications](#6-decisions-assumptions-and-simplifications)
 
 ## 1. Overview
 
@@ -75,6 +76,16 @@ Every user story, with how to try it, is in [docs/user-stories.md](docs/user-sto
 the 32 stories are implemented, and the one that is not is marked there. The complete list with
 priorities is in [docs/requirements.md](docs/requirements.md).
 
+**Database credentials** (only needed if you want to look inside a database; the services already
+have them):
+
+| Database | Host and port | Database | User | Password |
+|---|---|---|---|---|
+| resident-db | `localhost:5432` | `resident` | `resident` | `resident` |
+| billing-db | `localhost:5433` | `billing` | `billing` | `billing` |
+| maintenance-db | `localhost:5434` | `maintenance` | `maintenance` | `maintenance` |
+| reservation-db | `localhost:5435` | `reservation` | `reservation` | `reservation` |
+
 ## 4. Architecture
 
 ![Architecture diagram: the frontend and gateway route requests to four services, each with its own database. Billing and maintenance call resident over REST, and maintenance publishes events to Kafka, which resident consumes.](docs/images/diagram.png)
@@ -108,8 +119,40 @@ Decisions about architecture, communication between services and which user stor
 were made together. Work was done on feature branches and merged through pull requests with
 passing CI.
 
+## 6. Decisions, assumptions and simplifications
+
+**Decisions**
+- Each service owns its database and never reads another service's.
+- The gateway is the only entry point. It validates the JWT, and each service validates it again.
+- Token handling is shared. Creating and checking JWTs lives in one library, `security-common`, used
+  by the gateway and every service, so all of them treat tokens the same way. Each service keeps its
+  own role rules.
+- Maintenance workers are not residents. They have their own login in maintenance-service.
+- A completed request notifies the resident through a Kafka event, so the two services do not
+  depend on each other being up.
+- Maintenance stores the apartment of a request when it is created, so work orders still load when
+  resident-service is down.
+
+**Assumptions**
+- Board members also live in the building, so they can switch to the resident view.
+- Workers are external and do not live in the building.
+- An apartment can have several residents, and the system supports several buildings.
+
+**Simplifications**
+- Payments are simulated, and the demo passwords in `.env.example` are for demonstration only.
+- Kafka is one node without a volume and has no outbox, so an event can be lost if Kafka is down
+  when it is published.
+- Consul runs in dev mode (in memory), and the login rate limit is kept per gateway instance, so run
+  one gateway.
+- Only reservation-service is prepared for several instances.
+- Workers are created through the demo data or the API (`POST /workers`). There is no screen for it.
+- One user story is not implemented: the board cannot override the priority or status of a request.
+
+The full list, with the reason for each decision and what it costs, is in
+[docs/decisions.md](docs/decisions.md).
+
 ---
 
 More documentation: [Running the project](docs/running.md),
 [User stories](docs/user-stories.md), [Architecture](docs/architecture.md),
-[Requirements](docs/requirements.md)
+[Decisions](docs/decisions.md), [Requirements](docs/requirements.md)
