@@ -1,5 +1,6 @@
 package org.conrad.residentservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.residentservice.dto.LoginRequest;
 import org.conrad.residentservice.dto.LoginResponse;
 import org.conrad.residentservice.dto.MeResponse;
@@ -22,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request.email(), request.password())
                 .map(token -> ResponseEntity.ok(new LoginResponse(token)))
                 .orElseGet(() -> ResponseEntity.status(401).build());

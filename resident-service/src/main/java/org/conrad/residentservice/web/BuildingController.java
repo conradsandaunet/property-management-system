@@ -1,5 +1,6 @@
 package org.conrad.residentservice.web;
 
+import jakarta.validation.Valid;
 import org.conrad.residentservice.dto.BuildingRequest;
 import org.conrad.residentservice.dto.BuildingResponse;
 import org.conrad.residentservice.model.BuildingFacade;
@@ -34,12 +35,12 @@ public class BuildingController {
     }
 
     @PostMapping
-    public ResponseEntity<BuildingResponse> create(@RequestBody BuildingRequest request) {
+    public ResponseEntity<BuildingResponse> create(@Valid @RequestBody BuildingRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(buildingService.create(CurrentUser.name(), request));
     }
 
     @PatchMapping("/{id}")
-    public BuildingResponse update(@PathVariable Long id, @RequestBody BuildingRequest request) {
+    public BuildingResponse update(@PathVariable Long id, @Valid @RequestBody BuildingRequest request) {
         return buildingService.update(CurrentUser.name(), id, request);
     }
 

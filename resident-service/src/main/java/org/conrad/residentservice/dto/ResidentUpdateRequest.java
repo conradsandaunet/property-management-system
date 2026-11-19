@@ -1,7 +1,11 @@
 package org.conrad.residentservice.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+
+/** A field left out (null) is not changed, so these only limit what is sent. */
 public record ResidentUpdateRequest(
-        String email,
-        String phone
+        @Email @Size(max = 255) String email,
+        @Size(max = 20) String phone
 ) {
 }
