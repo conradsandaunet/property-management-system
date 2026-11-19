@@ -205,6 +205,7 @@ services:
       DB_PASSWORD: maintenance
       WORKER_SEED_PASSWORD: ${WORKER_SEED_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RESIDENT_SERVICE_URL: http://resident-service:8081
     depends_on:
       consul:
         condition: service_healthy

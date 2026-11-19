@@ -15,6 +15,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * Demo maintenance requests in every status. residentId refers to the residents seeded by
  * resident-service (ids 2-8), and the workers come from {@link WorkerSeed}.
@@ -25,6 +27,19 @@ import org.springframework.stereotype.Component;
 public class DemoMaintenanceSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoMaintenanceSeed.class);
+
+    private static final String BUILDING = "Solsiden Borettslag";
+
+    private record Home(Long apartmentId, String number) {}
+
+    private static final Map<Long, Home> HOMES = Map.of(
+            2L, new Home(2L, "102"),
+            3L, new Home(3L, "201"),
+            4L, new Home(3L, "201"),
+            5L, new Home(4L, "202"),
+            6L, new Home(5L, "301"),
+            7L, new Home(5L, "301"),
+            8L, new Home(6L, "302"));
 
     private final MaintenanceRequestRepository requestRepository;
     private final MaintenanceWorkerRepository workerRepository;
@@ -75,6 +90,12 @@ public class DemoMaintenanceSeed implements ApplicationRunner {
                                        MaintenanceStatus status, MaintenanceWorker worker) {
         MaintenanceRequest r = new MaintenanceRequest();
         r.setResidentId(residentId);
+        Home home = HOMES.get(residentId);
+        if (home != null) {
+            r.setApartmentId(home.apartmentId());
+            r.setApartmentNumber(home.number());
+            r.setBuildingName(BUILDING);
+        }
         r.setCategory(category);
         r.setLocation(location);
         r.setPriority(priority);

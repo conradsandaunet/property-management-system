@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 public record MaintenanceResponse(
         Long id,
         Long residentId,
+        String apartmentNumber,
+        String buildingName,
         MaintenanceCategory category,
         String location,
         String description,
@@ -22,6 +24,8 @@ public record MaintenanceResponse(
         return new MaintenanceResponse(
                 r.getId(),
                 r.getResidentId(),
+                r.getApartmentNumber(),
+                r.getBuildingName(),
                 r.getCategory(),
                 r.getLocation(),
                 r.getDescription(),
