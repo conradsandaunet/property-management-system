@@ -2,11 +2,17 @@ server {
     listen 80;
     root /usr/share/nginx/html;
 
+    # Docker's built-in DNS. nginx resolves a plain `proxy_pass http://gateway:8080` only once, at
+    # start-up, so after the gateway container is recreated (new IP) every /api call fails with 502
+    # until nginx restarts. With a resolver and a variable, the name is looked up again every 5 s.
+    resolver 127.0.0.11 valid=5s ipv6=off;
+
     # Same job as the Vite dev proxy: /api goes to the gateway, which strips the prefix.
     location /api/ {
         # Apartment photo uploads (the service allows 5 MB per photo); nginx's default is 1 MB.
         client_max_body_size 6m;
-        proxy_pass ${GATEWAY_URL};
+        set $gateway "${GATEWAY_URL}";
+        proxy_pass $gateway;
         proxy_set_header Host $http_host;
         # Overwrite (not append to) the header so a client can't forge its address
         # and dodge the gateway's login rate limit.

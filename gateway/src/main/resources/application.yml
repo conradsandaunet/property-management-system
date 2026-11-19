@@ -23,6 +23,14 @@ spring:
         fail-fast: false
         # Only route to instances whose Consul health check is passing.
         query-passing: true
+    circuitbreaker:
+      resilience4j:
+        # The breaker's own time limiter defaults to ONE second and would cut off, and count as
+        # failures, every request that takes longer: a cold service, a PDF, a photo upload. The HTTP
+        # client's connect and read timeouts (spring.http.clients.*) already bound every call, so the
+        # time limiter is switched off. This is here and not in Consul on purpose: it must hold even
+        # when Consul can't be reached.
+        disable-time-limiter: true
     loadbalancer:
       cache:
         # Default is 35s, which keeps sending traffic to a dead instance for that long.
@@ -36,7 +44,7 @@ spring:
           # twice), and a circuit breaker answers 503 straight away while a service keeps failing or
           # timing out, so the gateway's threads aren't tied up waiting. The retry is listed first,
           # which makes it the outer filter; with the breaker first, the retry never fires.
-          # Timeouts for the calls are spring.http.client.* (set in Consul, see consul-config/gateway.yml).
+          # Timeouts for the calls are spring.http.clients.* (set in Consul, see consul-config/gateway.yml).
           routes:
             - id: resident
               uri: lb://resident-service

@@ -33,12 +33,33 @@ class GatewayResilienceTest {
 
     private static volatile Mode mode = Mode.OK;
     private static final AtomicInteger calls = new AtomicInteger();
+    private static final AtomicInteger inFlight = new AtomicInteger();
     private static final HttpServer stub = startStub();
 
     private static HttpServer startStub() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+            // One thread per request. With a single thread, a hanging call would hold up the requests
+            // behind it, and they would be counted later, in the middle of the next test.
+            server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
             server.createContext("/", exchange -> {
+                inFlight.incrementAndGet();
+                try {
+                    handle(exchange);
+                } finally {
+                    inFlight.decrementAndGet();
+                }
+            });
+            server.start();
+            return server;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static void handle(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
+        {
+            {
                 int n = calls.incrementAndGet();
                 exchange.getRequestBody().readAllBytes();
                 try {
@@ -59,11 +80,7 @@ class GatewayResilienceTest {
                     // the gateway gave up waiting and closed the connection
                 }
                 exchange.close();
-            });
-            server.start();
-            return server;
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+            }
         }
     }
 
@@ -74,8 +91,8 @@ class GatewayResilienceTest {
                     () -> "http://127.0.0.1:" + stub.getAddress().getPort());
         }
         registry.add("JWT_SECRET", () -> SECRET);
-        registry.add("spring.http.client.connect-timeout", () -> "500ms");
-        registry.add("spring.http.client.read-timeout", () -> "700ms");
+        registry.add("spring.http.clients.connect-timeout", () -> "500ms");
+        registry.add("spring.http.clients.read-timeout", () -> "700ms");
         // A small window, so the breaker opens after a few failures.
         registry.add("resilience4j.circuitbreaker.configs.default.sliding-window-size", () -> "4");
         registry.add("resilience4j.circuitbreaker.configs.default.minimum-number-of-calls", () -> "4");
@@ -97,8 +114,10 @@ class GatewayResilienceTest {
     private final HttpClient client = HttpClient.newHttpClient();
 
     @BeforeEach
-    void reset() {
+    void reset() throws InterruptedException {
         mode = Mode.OK;
+        // Let calls that the previous test left hanging finish before counting again.
+        for (int i = 0; i < 100 && inFlight.get() > 0; i++) Thread.sleep(100);
         calls.set(0);
     }
 
