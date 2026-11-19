@@ -8,7 +8,7 @@ import { useToast } from "../../components/toastContext";
 import { useAsync } from "../../hooks/useAsync";
 import { useAuth } from "../../auth/useAuth";
 import { changeMaintenanceStatus, getAssignedMaintenance } from "../../api/maintenance";
-import { formatDate } from "../../lib/format";
+import { apartmentLabel, formatDate } from "../../lib/format";
 import { PRIORITY_RANK, requestTitle } from "./labels";
 import RequestSteps from "./RequestSteps";
 import CommentThread from "./CommentThread";
@@ -76,7 +76,9 @@ export default function WorkOrdersPage() {
                                             <Priority priority={o.priority} suffix=" priority" />
                                         </div>
                                         <p>{o.description}</p>
-                                        <p className="small muted" style={{ marginTop: 6 }}>Reported {formatDate(o.createdAt)}</p>
+                                        <p className="small muted" style={{ marginTop: 6 }}>
+                                            {o.apartmentNumber ? `Apartment ${apartmentLabel(o)}` : "Apartment not recorded"} · Reported {formatDate(o.createdAt)}
+                                        </p>
                                         <RequestSteps status={o.status} />
                                         <div className="form-actions" style={{ marginTop: 14 }}>
                                             {step && (

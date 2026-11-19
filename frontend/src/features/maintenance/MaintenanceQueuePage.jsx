@@ -11,7 +11,7 @@ import { useAsync } from "../../hooks/useAsync";
 import { useDirectory } from "../../hooks/useDirectory";
 import { useAuth } from "../../auth/useAuth";
 import { assignWorker, getOpenMaintenance, getWorkers } from "../../api/maintenance";
-import { formatDate } from "../../lib/format";
+import { apartmentLabel, formatDate } from "../../lib/format";
 import AssignWorkerForm from "./AssignWorkerForm";
 import CommentThread from "./CommentThread";
 import RequestSteps from "./RequestSteps";
@@ -46,6 +46,9 @@ export default function MaintenanceQueuePage() {
             toast("Couldn't assign the worker", { kind: "error" });
         }
     }
+
+    // The request stores its own apartment. Older requests don't, so fall back to the directory.
+    const apartmentOf = (r) => (r.apartmentNumber ? apartmentLabel(r) : dir.residentApartment(r.residentId));
 
     const all = (requests.data ?? [])
         .slice()
@@ -104,7 +107,7 @@ export default function MaintenanceQueuePage() {
                                     </td>
                                     <td className="hide-sm">
                                         <div style={{ whiteSpace: "nowrap" }}>{dir.residentName(r.residentId)}</div>
-                                        <div className="table__sub">{dir.residentApartment(r.residentId)}</div>
+                                        <div className="table__sub">{apartmentOf(r)}</div>
                                     </td>
                                     <td className="hide-sm muted" style={{ whiteSpace: "nowrap" }}>{formatDate(r.createdAt)}</td>
                                     <td style={{ whiteSpace: "nowrap" }}>{r.assignedWorkerName ?? <span className="muted">Unassigned</span>}</td>
@@ -131,7 +134,7 @@ export default function MaintenanceQueuePage() {
                         </div>
                         <p>{viewing.description}</p>
                         <p className="small muted" style={{ marginTop: 8 }}>
-                            Reported by {dir.residentName(viewing.residentId)} · {dir.residentApartment(viewing.residentId)} · {formatDate(viewing.createdAt)}
+                            Reported by {dir.residentName(viewing.residentId)} · {apartmentOf(viewing)} · {formatDate(viewing.createdAt)}
                         </p>
                         <p className="small muted">
                             {viewing.assignedWorkerName ? `Worker: ${viewing.assignedWorkerName}` : "No worker assigned yet"}
@@ -153,7 +156,7 @@ export default function MaintenanceQueuePage() {
                     onClose={() => setAssigning(null)}>
                 {assigning && workers.data && (
                     <AssignWorkerForm request={assigning} workers={workers.data}
-                                      reporter={`${dir.residentName(assigning.residentId)} · ${dir.residentApartment(assigning.residentId)}`}
+                                      reporter={`${dir.residentName(assigning.residentId)} · ${apartmentOf(assigning)}`}
                                       onAssign={handleAssign} onCancel={() => setAssigning(null)} />
                 )}
             </Drawer>
