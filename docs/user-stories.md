@@ -1,7 +1,8 @@
 # User stories
 
-Scenarios an examiner can run to see the functionality. The complete list of user stories, with
-priorities, is in [requirements.md](requirements.md). The system is started as described in the
+Scenarios an examiner can run to see the functionality. Every user story in
+[requirements.md](requirements.md) is listed below with how to try it. 31 of the 32 stories are
+implemented, and the one that is not is marked. The system is started as described in the
 [README](../README.md#2-build-start-and-run).
 
 ## Contents
@@ -31,19 +32,57 @@ use http://localhost:5173 instead of port 3000.
 
 ## Scenarios to try
 
+### Resident service
+
 | Story | Sign in as | How to try it |
 |---|---|---|
-| Resident sees apartment, household and contact details | `kari@example.com` | Home, then Account |
-| Resident reports a maintenance issue and follows its status | `kari@example.com` | Maintenance, then report a new issue |
-| Board assigns a request to a worker | `board@example.com` | Maintenance, then pick a worker |
-| Worker accepts, starts and completes a request | `per@example.com` at `/worker/login` | Work orders |
-| Resident gets a notification when the request is completed (asynchronous event) | `kari@example.com` | Notifications, after the worker completes a request |
-| Resident and worker comment on a request | `kari@example.com` and `per@example.com` | Open a request and add a comment |
-| Board manages residents and apartments, and apartment photos | `board@example.com` | Residents and Apartments |
-| Board generates monthly invoices and marks them paid | `board@example.com` | Invoices |
-| Resident sees invoices and simulates payment | `kari@example.com` | Invoices |
-| Resident books and cancels a shared resource | `kari@example.com` | Reservations |
-| Board blocks a resource for a period | `board@example.com` | Resources |
+| Log in and see my apartment (number, floor, building) | `kari@example.com` | Home |
+| See who is registered in my household | `kari@example.com` | Account, Household |
+| Update my contact information | `kari@example.com` | Account, edit email and phone |
+| See the status of my apartment (Active resident) | `kari@example.com` | Account |
+| Overview of the building (apartments, occupied, vacant, residents) | `board@example.com` | Overview |
+| Add, edit and remove residents | `board@example.com` | Property, Residents tab |
+| Add, edit and remove apartments | `board@example.com` | Property, Buildings tab, open a building |
+| Search for a resident by name or apartment | `board@example.com` | Property, Residents tab, search field |
+| Upload and remove photos of an apartment | `board@example.com` | Property, open an apartment, Photos |
+| Add, edit and remove buildings | `board@example.com` | Property, Buildings tab |
+
+### Billing service
+
+| Story | Sign in as | How to try it |
+|---|---|---|
+| See my monthly invoice | `kari@example.com` | Invoices |
+| Simulate paying my invoice | `kari@example.com` | Invoices, pay the current invoice |
+| See a history of previous invoices | `kari@example.com` | Invoices, the list below the current invoice |
+| Generate monthly invoices for all apartments | `board@example.com` | Billing, Generate invoices |
+| Payment overview (paid, pending, overdue) for the building | `board@example.com` | Billing |
+| Mark an invoice as paid manually | `board@example.com` | Billing, Mark as paid on an invoice |
+
+### Maintenance service
+
+| Story | Sign in as | How to try it |
+|---|---|---|
+| Create a maintenance request | `kari@example.com` | Maintenance, Report an issue |
+| See the status of my requests | `kari@example.com` | Maintenance |
+| Comment on an open request | `kari@example.com` | Maintenance, Comments |
+| See all open requests by priority | `board@example.com` | Maintenance |
+| Assign a request to a worker | `board@example.com` | Maintenance, Assign |
+| Override the priority or status of a request | **Not implemented** | |
+| See my assigned work orders | `per@example.com` at `/worker/login` | Work orders |
+| Accept, start and complete a request | `per@example.com` at `/worker/login` | Work orders, Start work, then Mark as done |
+| `MaintenanceCompleted` event published, resident notified | `kari@example.com` | Notifications, after the worker completes a request |
+| Comment on a request as a worker | `per@example.com` at `/worker/login` | Work orders, Comments |
+| See completed work orders | `per@example.com` at `/worker/login` | Work orders, Completed |
+
+### Reservation service
+
+| Story | Sign in as | How to try it |
+|---|---|---|
+| See available time slots for a resource | `kari@example.com` | Bookings |
+| Reserve a resource for a time slot | `kari@example.com` | Bookings |
+| Cancel my own reservation | `kari@example.com` | Bookings |
+| See all reservations for a resource | `board@example.com` | Resources |
+| Block a resource for a period | `board@example.com` | Resources, Block |
 
 ## End-to-end demo
 

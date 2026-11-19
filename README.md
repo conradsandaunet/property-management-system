@@ -71,8 +71,9 @@ The board and worker passwords are `BOARD_SEED_PASSWORD` and `WORKER_SEED_PASSWO
 `board@example.com` assign it to Per. As `per@example.com` at `/worker/login`, accept, start and
 complete it. Sign in as Kari again and open Notifications.
 
-All scenarios, one per user story, are in [docs/user-stories.md](docs/user-stories.md). The
-complete list of user stories with priorities is in [docs/requirements.md](docs/requirements.md).
+Every user story, with how to try it, is in [docs/user-stories.md](docs/user-stories.md). 31 of
+the 32 stories are implemented, and the one that is not is marked there. The complete list with
+priorities is in [docs/requirements.md](docs/requirements.md).
 
 ## 4. Architecture
 
