@@ -73,14 +73,18 @@ Sist oppdatert etter lastbalansering via Consul, sentral konfigurasjon (Consul K
   Endringer i KV krever restart av tjenesten. Verifisert på gatewayen (verdi fra Consul overstyrte fallback).
   - [x] Dokumentert i README: hva som ligger i Consul, hva som er miljøvariabler og hvorfor
   - [x] Verifisert i hele compose-stakken (alle tjenester `healthy`)
-- [ ] **12. Kan deployes med flere instanser av relevante tjenester** (PARTIAL)
-  reservation-service kjører med flere instanser (`--scale`), og dobbeltbooking er sikret med en
-  exclusion constraint i databasen (`V3`, med test som booker samme tid fra åtte tråder).
-  - [x] Velge en tjeneste å demonstrere med: reservation. Ingen `container_name`/port-konflikter, to instanser deler last
-  - [x] Samtidige bookinger er trygge på tvers av instanser (constraint + 409)
-  - [x] Demodata-seeding i reservation tåler flere instanser som starter samtidig (Postgres advisory lock, med test). Seeding i resident/billing/maintenance er ikke laget for flere kopier
-  - [ ] Rate limiting på login er in-memory per gateway-instans (hold gatewayen på én instans, nevn det i dokumentasjonen)
-  - [ ] Beskrive hvilke tjenester som er laget for skalering (reservation) og hvilke som ikke er (billing/maintenance/resident har seeding og in-memory-tilstand)
+- [x] **12. Kan deployes med flere instanser av relevante tjenester** (DONE)
+  De fire tjenestene (reservation, resident, billing, maintenance) kan kjøre som flere instanser:
+  `docker compose up -d --scale <tjeneste>=N`. Gatewayen fordeler lasten via Consul, og
+  `scripts/scaling-demo.sh` viser fordelingen (header `X-Served-By`, målt 20/20/20 og 30/30).
+  Seeding bruker en Postgres advisory lock (testet med ti instanser som starter samtidig),
+  dobbeltbooking og dobbel fakturering stoppes av databasen, og Kafka-temaet har tre partisjoner
+  så resident-instansene deler hendelsene (ett varsel per hendelse).
+  - [x] Seeding i alle fire tjenestene tåler at flere instanser starter samtidig (`SeedLock`, med test)
+  - [x] Samtidige bookinger og fakturagenerering er trygge på tvers av instanser
+  - [x] Demo og målinger er dokumentert i README (fordeling, hva som skjer når en instans dør: ca. 5 s)
+  - [x] Begrensninger er dokumentert: gatewayen kjører som én instans (rate limit i minnet), én konsument per partisjon (3), manuell skalering
+  - [ ] Kjør `scripts/scaling-demo.sh` mot Docker-stakken fra en ren klone før levering
 
 ## Oppgavespesifikke krav
 

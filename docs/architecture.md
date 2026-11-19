@@ -90,6 +90,26 @@ circuit breaker settings below) are loaded from Consul's key/value store. Secret
 per-environment addresses stay in environment variables. See the [README](../README.md) for how
 to open the Consul UI and run several instances.
 
+## Running several instances
+
+Reservation, resident, billing and maintenance can run as several instances. Every instance
+registers in Consul with its own id, and the gateway asks for the healthy ones and spreads the
+requests round-robin. For this to be safe nothing may depend on being the only copy:
+
+| What | How it works with several instances |
+|---|---|
+| Start-up seeding | A Postgres advisory lock (`SeedLock` in `security-common`) lets one instance seed at a time. The others wait and then find the data. |
+| Double bookings | An exclusion constraint in the database refuses overlapping bookings. |
+| Duplicate invoices | A unique constraint on apartment and month. A concurrent "generate" skips what exists. |
+| Events | The topic has three partitions and the instances of resident-service share them. A key per request keeps the events of one request in order. |
+| Sessions | None: the JWT carries the login, so any instance can answer. |
+| The gateway | One instance, because the login rate limit is kept in memory. |
+
+Every response carries `X-Served-By: <service>@<host>:<port>`, which is how the spread is shown
+(`scripts/scaling-demo.sh`). Consul checks each instance every 3 seconds and removes one that stays
+unhealthy for a minute. These settings, and the number of partitions, are in
+`consul-config/application.yml`.
+
 ## When a service is slow or down
 
 A call to another service can fail in three ways: the service is gone, it hangs, or it answers
@@ -97,13 +117,15 @@ with an error. Each synchronous call path handles them the same way:
 
 | Protection | Gateway to the services | billing-service to resident-service |
 |---|---|---|
-| **Timeouts** | 2 s to connect, 10 s to answer (`spring.http.client.*`) | 2 s to connect, 5 s to answer |
+| **Timeouts** | 2 s to connect, 10 s to answer (`spring.http.clients.*`) | 2 s to connect, 5 s to answer |
 | **Retry** | Up to two more attempts, **GET requests only**. A write is never repeated, since it could happen twice. | Up to two more attempts with a growing pause. All calls are reads. |
 | **Circuit breaker** | One per route. When half of the last ten calls failed or timed out, it answers `503` with `Retry-After` at once for 10 s, then lets two trial calls through. | The same idea in the client. |
 | **When it still fails** | The browser gets `503` with a short JSON message, and the other services keep working. | `502` for generating invoices, which needs the apartment list. The PDF and apartment numbers fall back to a plain label instead of failing. |
 
 A real answer from a working service, such as 401 or 404, is neither retried nor counted as a
-failure. The frontend repeats a failed read up to three times by itself (connection errors and
+failure. The gateway's circuit breaker has its own time limiter, which defaults to one second and
+would cut off (and count as failures) every slow but working call, such as a cold service, a PDF or
+a photo upload. It is switched off, so only the HTTP timeouts above limit a call. The frontend repeats a failed read up to three times by itself (connection errors and
 502/503/504), and a section that still can't load shows "Try again" instead of staying empty.
 The settings live in `consul-config/gateway.yml` and `consul-config/billing-service.yml`, so they
 can be changed without rebuilding. Everything else between services is asynchronous (Kafka),
@@ -181,3 +203,8 @@ Design choices:
 - **Scaling is manual.** `docker compose up --scale` adds instances and the gateway spreads the
   load, but nothing adds them when the load grows. That would need metrics and an autoscaler,
   for example Kubernetes with a Horizontal Pod Autoscaler.
+- **For about 5 seconds after an instance dies,** roughly one request in N still goes to it
+  (Consul checks health every 3 s and the gateway caches the list for 5 s). Reads are repeated
+  by the gateway and the frontend; a write may fail once.
+- **Only three resident-service instances read events at the same time**, one per partition of
+  the topic.

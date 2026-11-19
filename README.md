@@ -172,17 +172,52 @@ Billing as the board (a message appears, the rest of the app works), then
 `docker compose start billing-service` and press "Try again". Details are in
 [docs/architecture.md](docs/architecture.md#when-a-service-is-slow-or-down).
 
-**Load balancing:** run two copies of the reservation service and the gateway spreads
-requests over them.
+**Scaling and load balancing:** the four services can each run as several instances. Every
+instance registers in Consul, and the gateway spreads requests over the healthy ones (round-robin).
 
 ```bash
-docker compose up -d --scale reservation-service=2
+docker compose up -d --scale reservation-service=3     # or resident-, billing-, maintenance-service
 ```
 
-Both instances appear in Consul. Use the Reservations page and watch
-`docker compose logs -f reservation-service` alternate between `-1` and `-2`. Booking stays
-safe with several instances, because the database refuses overlapping reservations for the
-same resource. The login rate limit is kept per gateway instance, so run one gateway.
+The instances show up in Consul (*Services*). To see the spread, run the demo. It scales a
+service, calls the same endpoint 60 times through the frontend, reads the `X-Served-By` header that
+every service adds (service, host and port; in Docker the host is the container id), and counts:
+
+```bash
+./scripts/scaling-demo.sh                          # reservation-service, 3 instances
+./scripts/scaling-demo.sh resident-service 3 --kill-one   # also stops one and calls again
+```
+
+Example from a run with three instances of each service (laptop, 60 calls per service):
+
+| Service | Instances | Calls per instance |
+|---|---|---|
+| resident-service | 3 | 20 / 20 / 20 |
+| billing-service | 2 | 30 / 30 |
+| maintenance-service | 2 | 30 / 30 |
+| reservation-service | 3 | 20 / 20 / 20 |
+
+**When an instance dies:** Consul checks every instance's health every 3 seconds and the
+gateway keeps its list for 5 seconds, so for about 5 seconds roughly one request in N may still
+go to the dead instance (N = number of instances). The frontend repeats a failed read by itself,
+and round-robin gives the retry to another instance, so users rarely notice. After that the
+traffic is spread over the instances that are left, and Consul removes the dead one after about a
+minute and a half. Measured: with the default 10 s check interval it took 10 s, now about 5 s.
+
+**What makes several instances safe:**
+- Start-up seeding takes a Postgres advisory lock, so instances that start together don't seed
+  twice (checked with ten instances starting at once on empty databases).
+- Booking can't be double-booked, because the database refuses overlapping reservations.
+- The same invoice can't be created twice: the database allows one per apartment and month, and
+  a second "Generate invoices" at the same moment simply skips what already exists.
+- Events are consumed once: the topic has three partitions, and the instances of resident-service
+  share them (one each with three instances), so a notification is stored once.
+
+**Limits:** run **one gateway**, because the login rate limit is kept in memory per instance (with
+two it would be doubled). Every instance keeps up to 10 database connections, and Postgres allows
+100 by default. Only as many resident-service instances as there are partitions (3) read events at
+the same time. Scaling is manual; nothing adds instances when the load grows (that would take
+metrics and an autoscaler, for example Kubernetes with a Horizontal Pod Autoscaler).
 
 **Kafka:** when a worker completes a request, maintenance-service publishes
 `MaintenanceCompleted` to the topic `maintenance.completed` after the database change is

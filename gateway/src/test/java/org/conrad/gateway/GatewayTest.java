@@ -117,6 +117,17 @@ class GatewayTest {
         return jwtService.issueToken("1", "a@b.no", false, 7L);
     }
 
+    // ---- scaling ----
+
+    @Test
+    void everyResponseNamesTheInstanceThatAnswered() throws Exception {
+        HttpResponse<String> response = send("GET", "/actuator/health", null, null);
+
+        // Behind several instances this is what shows which one answered.
+        assertThat(response.headers().firstValue("X-Served-By")).hasValueSatisfying(
+                v -> assertThat(v).startsWith("gateway@"));
+    }
+
     // ---- routing ----
 
     @Test
