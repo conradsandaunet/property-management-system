@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Priority } from "../../components/Indicators";
+import { Priority, RequestStatus } from "../../components/Indicators";
 import EmptyState from "../../components/EmptyState";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
@@ -7,8 +7,8 @@ import Skeleton from "../../components/Skeleton";
 import { useToast } from "../../components/toastContext";
 import { useAsync } from "../../hooks/useAsync";
 import { useAuth } from "../../auth/useAuth";
-import { changeMaintenanceStatus, getAssignedMaintenance } from "../../api/maintenance";
-import { formatDate } from "../../lib/format";
+import { changeMaintenanceStatus, getAssignedMaintenance, getCompletedMaintenance } from "../../api/maintenance";
+import { apartmentLabel, formatDate } from "../../lib/format";
 import { PRIORITY_RANK, requestTitle } from "./labels";
 import RequestSteps from "./RequestSteps";
 import CommentThread from "./CommentThread";
@@ -28,6 +28,7 @@ export default function WorkOrdersPage() {
     const { token, me } = useAuth();
     const toast = useToast();
     const orders = useAsync(() => getAssignedMaintenance(token), [token]);
+    const completed = useAsync(() => getCompletedMaintenance(token), [token]);
     const [savingId, setSavingId] = useState(null);
     const [openComments, setOpenComments] = useState(null);
 
@@ -42,6 +43,7 @@ export default function WorkOrdersPage() {
         } finally {
             setSavingId(null);
             orders.reload();
+            completed.reload();
         }
     }
 
@@ -53,6 +55,7 @@ export default function WorkOrdersPage() {
             <PageHeader title="Work orders" subtitle={`Requests assigned to ${me.email}, most urgent first.`} />
 
             {orders.error && <Notice kind="error" onRetry={orders.reload}>Couldn't load your work orders.</Notice>}
+            {completed.error && <Notice kind="error">Couldn't load your completed work orders.</Notice>}
             {orders.loading && !orders.data && <Skeleton rows={3} />}
             {orders.data && sorted.length === 0 && (
                 <EmptyState title="Nothing assigned to you">New work orders show up here when the board assigns them.</EmptyState>
@@ -76,7 +79,9 @@ export default function WorkOrdersPage() {
                                             <Priority priority={o.priority} suffix=" priority" />
                                         </div>
                                         <p>{o.description}</p>
-                                        <p className="small muted" style={{ marginTop: 6 }}>Reported {formatDate(o.createdAt)}</p>
+                                        <p className="small muted" style={{ marginTop: 6 }}>
+                                            {o.apartmentNumber ? `Apartment ${apartmentLabel(o)}` : "Apartment not recorded"} · Reported {formatDate(o.createdAt)}
+                                        </p>
                                         <RequestSteps status={o.status} />
                                         <div className="form-actions" style={{ marginTop: 14 }}>
                                             {step && (
@@ -97,6 +102,37 @@ export default function WorkOrdersPage() {
                     </section>
                 );
             })}
+
+            {completed.data && completed.data.length > 0 && (
+                <section className="section">
+                    <div className="section__head">
+                        <h2 className="section__title">Completed <span className="muted">({completed.data.length})</span></h2>
+                    </div>
+                    <ul className="item-list card card--flush">
+                        {completed.data.map((o) => (
+                            <li key={o.id} className="item" style={{ flexWrap: "wrap" }}>
+                                <div className="item__body">
+                                    <div className="item__title">{requestTitle(o)}</div>
+                                    <div className="item__meta">
+                                        {o.apartmentNumber && <span>Apartment {apartmentLabel(o)}</span>}
+                                        <span>Completed {formatDate(o.updatedAt)}</span>
+                                    </div>
+                                </div>
+                                <button type="button" className="btn-link" aria-expanded={openComments === o.id}
+                                        onClick={() => setOpenComments(openComments === o.id ? null : o.id)}>
+                                    {openComments === o.id ? "Hide comments" : "Comments"}
+                                </button>
+                                <RequestStatus status="RESOLVED" />
+                                {openComments === o.id && (
+                                    <div style={{ flexBasis: "100%" }}>
+                                        <CommentThread requestId={o.id} viewer="worker" canWrite />
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
         </>
     );
 }

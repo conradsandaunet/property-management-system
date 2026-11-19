@@ -26,8 +26,9 @@ public class MaintenanceController {
     }
 
     @PostMapping
-    public ResponseEntity<MaintenanceResponse> create(@Valid @RequestBody MaintenanceCreateRequest request) {
-        MaintenanceRequest created = maintenanceService.create(currentResidentId(), request);
+    public ResponseEntity<MaintenanceResponse> create(@Valid @RequestBody MaintenanceCreateRequest request,
+                                                      @RequestHeader("Authorization") String authorization) {
+        MaintenanceRequest created = maintenanceService.create(currentResidentId(), authorization, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(MaintenanceResponse.from(created));
     }
 
@@ -77,6 +78,13 @@ public class MaintenanceController {
     private Long currentWorkerId() {
         String subject = SecurityContextHolder.getContext().getAuthentication().getName();
         return Long.valueOf(subject.substring(JwtService.WORKER_SUBJECT_PREFIX.length()));
+    }
+
+    @GetMapping("/completed")
+    public ResponseEntity<List<MaintenanceResponse>> getCompletedRequests() {
+        List<MaintenanceResponse> responses = maintenanceService.listCompletedBy(currentWorkerId())
+                .stream().map(MaintenanceResponse::from).toList();
+        return ResponseEntity.ok(responses);
     }
 }
 

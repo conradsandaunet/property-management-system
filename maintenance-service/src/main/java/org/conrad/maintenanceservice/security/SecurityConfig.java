@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/maintenance/my").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.GET, "/maintenance/open").hasRole("BOARD")
                         .requestMatchers(HttpMethod.GET, "/maintenance/assigned").hasRole("WORKER")
+                        .requestMatchers(HttpMethod.GET, "/maintenance/completed").hasRole("WORKER")
                         .requestMatchers(HttpMethod.PATCH, "/maintenance/{id}/status").hasRole("WORKER")
                         .requestMatchers(HttpMethod.GET, "/maintenance/{id}").hasRole("RESIDENT")
                         .requestMatchers(HttpMethod.POST, "/maintenance/{id}/comments").hasAnyRole("RESIDENT", "WORKER")
