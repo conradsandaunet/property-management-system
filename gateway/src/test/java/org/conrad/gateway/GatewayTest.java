@@ -81,7 +81,6 @@ class GatewayTest {
             registry.add("spring.cloud.discovery.client.simple.instances." + name + "-service[0].uri",
                     () -> url(name));
         }
-        registry.add("CORS_ALLOWED_ORIGINS", () -> "http://localhost:*");
         registry.add("JWT_SECRET", () -> SECRET);
     }
 

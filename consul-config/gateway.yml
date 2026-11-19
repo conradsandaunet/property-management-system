@@ -1,6 +1,34 @@
 # Gateway-only settings, loaded into Consul KV at config/gateway/data.
 app:
+  cors:
+    # Which browser origins may call the gateway (comma-separated patterns, * as wildcard). Behind
+    # the frontend's nginx the browser only sees one origin, so this matters for other front ends.
+    # Set it to the real address in a deployed environment, e.g. https://portal.example.com
+    allowed-origins: http://localhost:*
   rate-limit:
     login:
       attempts: 5
       period-seconds: 60
+
+spring:
+  http:
+    client:
+      # How long the gateway waits for a service before giving up (the retry and the circuit
+      # breaker take over from there). Without these the gateway waits indefinitely.
+      connect-timeout: 2s
+      read-timeout: 10s
+
+# The circuit breaker on every route: while a service keeps failing or timing out, the gateway
+# answers 503 at once instead of waiting on it. When `failure-rate-threshold` percent of the last
+# `sliding-window-size` calls failed (once `minimum-number-of-calls` are recorded) the breaker
+# opens for `wait-duration-in-open-state`, then lets a few trial calls through to see if the
+# service is back.
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2

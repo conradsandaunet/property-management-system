@@ -91,7 +91,7 @@ export default function BillingPage() {
                 )}
             />
 
-            {overview.error && <Notice kind="error">Couldn't load the invoices for {formatPeriod(period)}.</Notice>}
+            {overview.error && <Notice kind="error" onRetry={overview.reload}>Couldn't load the invoices for {formatPeriod(period)}.</Notice>}
 
             <div className="grid grid--stats section">
                 {stat("", "All invoices")}

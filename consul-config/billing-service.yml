@@ -1,0 +1,20 @@
+# billing-service only, loaded into Consul KV at config/billing-service/data.
+#
+# How billing-service treats resident-service, which it calls for apartments and the signed-in
+# resident. Restart billing-service after changing these.
+resident-service:
+  # Give up on a call that hasn't connected / hasn't answered within this time.
+  connect-timeout: 2s
+  read-timeout: 5s
+  # Extra attempts after a failure that may pass (timeout, connection error, 5xx), and the pause
+  # before the first one (it grows with each attempt).
+  retries: 2
+  retry-pause: 200ms
+  # Fail fast while resident-service keeps failing: when at least `minimum-calls` of the last
+  # `sliding-window-size` calls are recorded and `failure-rate-threshold` percent of them failed,
+  # calls fail at once for `open-duration`, then a few trial calls check whether it is back.
+  circuit-breaker:
+    sliding-window-size: 10
+    minimum-calls: 5
+    failure-rate-threshold: 50
+    open-duration: 10s

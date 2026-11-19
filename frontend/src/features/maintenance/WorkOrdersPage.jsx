@@ -52,7 +52,7 @@ export default function WorkOrdersPage() {
         <>
             <PageHeader title="Work orders" subtitle={`Requests assigned to ${me.email}, most urgent first.`} />
 
-            {orders.error && <Notice kind="error">Couldn't load your work orders.</Notice>}
+            {orders.error && <Notice kind="error" onRetry={orders.reload}>Couldn't load your work orders.</Notice>}
             {orders.loading && !orders.data && <Skeleton rows={3} />}
             {orders.data && sorted.length === 0 && (
                 <EmptyState title="Nothing assigned to you">New work orders show up here when the board assigns them.</EmptyState>

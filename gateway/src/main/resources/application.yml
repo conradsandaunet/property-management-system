@@ -30,6 +30,13 @@ spring:
     gateway:
       server:
         webmvc:
+          # Retry with Spring Framework's built-in retry, not the spring-retry library.
+          use-framework-retry-filter: true
+          # Every route: GET requests are retried (never POST or other writes, which could happen
+          # twice), and a circuit breaker answers 503 straight away while a service keeps failing or
+          # timing out, so the gateway's threads aren't tied up waiting. The retry is listed first,
+          # which makes it the outer filter; with the breaker first, the retry never fires.
+          # Timeouts for the calls are spring.http.client.* (set in Consul, see consul-config/gateway.yml).
           routes:
             - id: resident
               uri: lb://resident-service
@@ -37,31 +44,64 @@ spring:
                 - Path=/api/auth/**,/api/residents/**,/api/apartments/**,/api/buildings/**,/api/notifications/**
               filters:
                 - StripPrefix=1
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET
+                    series: SERVER_ERROR
+                - name: CircuitBreaker
+                  args:
+                    id: resident
+                    fallbackUri: forward:/fallback/resident
             - id: billing
               uri: lb://billing-service
               predicates:
                 - Path=/api/invoices/**
               filters:
                 - StripPrefix=1
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET
+                    series: SERVER_ERROR
+                - name: CircuitBreaker
+                  args:
+                    id: billing
+                    fallbackUri: forward:/fallback/billing
             - id: maintenance
               uri: lb://maintenance-service
               predicates:
                 - Path=/api/maintenance/**,/api/workers/**
               filters:
                 - StripPrefix=1
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET
+                    series: SERVER_ERROR
+                - name: CircuitBreaker
+                  args:
+                    id: maintenance
+                    fallbackUri: forward:/fallback/maintenance
             - id: reservation
               uri: lb://reservation-service
               predicates:
                 - Path=/api/reservations/**,/api/resources/**
               filters:
                 - StripPrefix=1
-
+                - name: Retry
+                  args:
+                    retries: 2
+                    methods: GET
+                    series: SERVER_ERROR
+                - name: CircuitBreaker
+                  args:
+                    id: reservation
+                    fallbackUri: forward:/fallback/reservation
 
 app:
   jwt:
     secret: ${JWT_SECRET}
-  cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 management:
   endpoints:
