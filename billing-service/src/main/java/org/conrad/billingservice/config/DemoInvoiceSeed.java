@@ -6,6 +6,7 @@ import org.conrad.billingservice.repository.InvoiceRepository;
 import org.conrad.billingservice.service.InvoiceDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,12 +25,21 @@ public class DemoInvoiceSeed implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoInvoiceSeed.class);
     private static final int APARTMENTS = 6;
 
+    private final SeedLock seedLock;
     private final InvoiceRepository invoiceRepository;
 
-    public DemoInvoiceSeed(InvoiceRepository invoiceRepository) { this.invoiceRepository = invoiceRepository; }
+    public DemoInvoiceSeed(SeedLock seedLock, InvoiceRepository invoiceRepository) {
+        this.seedLock = seedLock;
+        this.invoiceRepository = invoiceRepository;
+    }
 
     @Override
     public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        seedLock.runExclusively(this::seed);
+    }
+
+    private void seed() {
         if (invoiceRepository.count() > 0) {
             return;
         }

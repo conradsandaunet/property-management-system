@@ -9,6 +9,7 @@ import org.conrad.billingservice.exception.InvoiceAlreadyPaidException;
 import org.conrad.billingservice.model.Invoice;
 import org.conrad.billingservice.model.InvoiceStatus;
 import org.conrad.billingservice.repository.InvoiceRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -76,7 +77,12 @@ public class InvoiceService {
             invoice.addLine(InvoiceDefaults.sharedCost(period));
             invoice.addLine(InvoiceDefaults.water());
 
-            created.add(InvoiceResponse.from(invoiceRepository.save(invoice)));
+            try {
+                created.add(InvoiceResponse.from(invoiceRepository.save(invoice)));
+            } catch (DataIntegrityViolationException e) {
+                // Someone else (another click, or another instance) created it between the check and
+                // the save; the database allows one invoice per apartment and month. Skip it.
+            }
         }
         return created;
     }

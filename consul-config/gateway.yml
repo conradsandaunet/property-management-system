@@ -12,7 +12,9 @@ app:
 
 spring:
   http:
-    client:
+    # Note the plural: this is what the gateway's proxy client reads (spring.http.client, singular,
+    # is ignored there).
+    clients:
       # How long the gateway waits for a service before giving up (the retry and the circuit
       # breaker take over from there). Without these the gateway waits indefinitely.
       connect-timeout: 2s

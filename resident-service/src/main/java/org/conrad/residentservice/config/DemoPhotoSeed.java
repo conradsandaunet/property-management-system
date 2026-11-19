@@ -10,6 +10,7 @@ import org.conrad.residentservice.service.ApartmentPhotoService;
 import org.conrad.residentservice.service.BuildingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,9 +18,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -43,16 +46,22 @@ public class DemoPhotoSeed implements ApplicationRunner {
     private static final Set<String> DEMO_BUILDINGS = Set.of(BoardAccountSeed.BUILDING, DemoResidentSeed.SECOND_BUILDING);
     private static final String ACTOR = "demo-seed";
 
+    private final SeedLock seedLock;
     private final ApartmentPhotoRepository photoRepository;
     private final BuildingFacadeRepository facadeRepository;
     private final ApartmentRepository apartmentRepository;
     private final BuildingRepository buildingRepository;
     private final ApartmentPhotoService photoService;
     private final BuildingService buildingService;
+    // One transaction for the whole seeding: apartment.getBuilding() is lazy and needs an open session.
+    private final TransactionTemplate transaction;
 
-    public DemoPhotoSeed(ApartmentPhotoRepository photoRepository, BuildingFacadeRepository facadeRepository,
+    public DemoPhotoSeed(SeedLock seedLock, ApartmentPhotoRepository photoRepository, BuildingFacadeRepository facadeRepository,
                          ApartmentRepository apartmentRepository, BuildingRepository buildingRepository,
-                         ApartmentPhotoService photoService, BuildingService buildingService) {
+                         ApartmentPhotoService photoService, BuildingService buildingService,
+                         PlatformTransactionManager transactionManager) {
+        this.seedLock = seedLock;
+        this.transaction = new TransactionTemplate(transactionManager);
         this.photoRepository = photoRepository;
         this.facadeRepository = facadeRepository;
         this.apartmentRepository = apartmentRepository;
@@ -61,10 +70,22 @@ public class DemoPhotoSeed implements ApplicationRunner {
         this.buildingService = buildingService;
     }
 
-    // One transaction for the whole run: apartment.getBuilding() is lazy and needs an open session.
     @Override
-    @Transactional
-    public void run(ApplicationArguments args) throws IOException {
+    public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        // The transaction is opened inside the lock and committed before it is released. Were it the
+        // other way round, the next instance would take the lock before these rows were visible,
+        // see an empty table and seed it again.
+        seedLock.runExclusively(() -> transaction.executeWithoutResult(status -> {
+            try {
+                seed();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }));
+    }
+
+    private void seed() throws IOException {
         List<Resource> files = Arrays.stream(new PathMatchingResourcePatternResolver()
                         .getResources("classpath:demo-pictures/*.jpg"))
                 .sorted(Comparator.comparing(Resource::getFilename))

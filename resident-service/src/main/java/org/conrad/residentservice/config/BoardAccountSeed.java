@@ -9,6 +9,7 @@ import org.conrad.residentservice.repository.ResidentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ public class BoardAccountSeed implements ApplicationRunner {
     private static final String SEED_EMAIL = "board@example.com";
     static final String BUILDING = "Solsiden Borettslag";
 
+    private final SeedLock seedLock;
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;
     private final BuildingRepository buildingRepository;
@@ -30,12 +32,14 @@ public class BoardAccountSeed implements ApplicationRunner {
     private final String seedPassword;
 
     public BoardAccountSeed(
+            SeedLock seedLock,
             ResidentRepository residentRepository,
             ApartmentRepository apartmentRepository,
             BuildingRepository buildingRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.board-password}") String seedPassword
     ) {
+        this.seedLock = seedLock;
         this.residentRepository = residentRepository;
         this.apartmentRepository = apartmentRepository;
         this.buildingRepository = buildingRepository;
@@ -45,6 +49,11 @@ public class BoardAccountSeed implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        seedLock.runExclusively(this::seed);
+    }
+
+    private void seed() {
         if (residentRepository.count() > 0) {
             return;
         }
