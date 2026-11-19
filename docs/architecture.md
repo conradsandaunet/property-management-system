@@ -27,7 +27,7 @@ asynchronous events sent through Kafka.
 |---|---|---|---|
 | frontend | 3000 | React app served by nginx, proxies `/api` to the gateway | |
 | gateway | 8080 | Single entry point: routing, CORS, JWT check, login rate limit, load balancing | |
-| resident-service | 8081 | Apartments, residents, login, notifications | `resident-db` (5432) |
+| resident-service | 8081 | Residents, apartments, buildings and their photos, login, notifications (see the note below) | `resident-db` (5432) |
 | billing-service | 8082 | Monthly invoices, payments, invoice PDF | `billing-db` (5433) |
 | maintenance-service | 8083 | Maintenance requests, workers, work orders | `maintenance-db` (5434) |
 | reservation-service | 8084 | Shared resources and bookings | `reservation-db` (5435) |
@@ -37,6 +37,15 @@ asynchronous events sent through Kafka.
 
 Only the frontend is published for the application. The gateway and the services are
 reachable inside the Docker network only, so no request can skip the JWT check.
+
+**Why resident-service also owns apartments and buildings.** Residents, apartments and buildings
+share foreign keys and transactions: a resident lives in an apartment, an apartment belongs to a
+building, and an apartment cannot be removed while people live in it. Most screens need them
+together. Splitting them into two services would have turned every list into several network
+calls and moved those rules out of the database, for no gain in scaling. The service name is
+therefore narrower than its job (a name like `property-service` would fit better). The name was
+kept because it is used in Docker, Consul, the gateway routes and the configuration, and changing
+it late would have risked breaking those.
 
 ## Communication
 
