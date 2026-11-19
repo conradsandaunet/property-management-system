@@ -241,3 +241,11 @@ Design choices:
   by the gateway and the frontend; a write may fail once.
 - **Only three resident-service instances read events at the same time**, one per partition of
   the topic.
+- **Logging is not centralized.** Every service writes plain text to its console, and Docker keeps
+  it per container (`docker compose logs -f <service>`, or without a name for all of them). There
+  is no log collector, no structured (JSON) output and no search across services. resident-service
+  logs sign-ins and every board action, which gives an audit trail there; the other services log
+  less. A request has no correlation id, so it cannot be followed from the gateway through
+  several services in the logs. In production the services would log JSON to a collector such as
+  Loki or an ELK stack, and the gateway would create an id per request, pass it on in a header and
+  add it to every log line (MDC).
