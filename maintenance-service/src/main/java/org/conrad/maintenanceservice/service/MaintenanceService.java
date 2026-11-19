@@ -130,4 +130,9 @@ public class MaintenanceService {
         }
         return request;
     }
+
+    @Transactional(readOnly = true)
+    public List<MaintenanceRequest> listCompletedBy(Long workerId) {
+        return repository.findByAssignedWorkerIdAndStatusOrderByUpdatedAtDesc(workerId, MaintenanceStatus.RESOLVED);
+    }
 }

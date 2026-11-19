@@ -79,5 +79,12 @@ public class MaintenanceController {
         String subject = SecurityContextHolder.getContext().getAuthentication().getName();
         return Long.valueOf(subject.substring(JwtService.WORKER_SUBJECT_PREFIX.length()));
     }
+
+    @GetMapping("/completed")
+    public ResponseEntity<List<MaintenanceResponse>> getCompletedRequests() {
+        List<MaintenanceResponse> responses = maintenanceService.listCompletedBy(currentWorkerId())
+                .stream().map(MaintenanceResponse::from).toList();
+        return ResponseEntity.ok(responses);
+    }
 }
 
