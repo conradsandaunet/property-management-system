@@ -9,6 +9,7 @@ import org.conrad.maintenanceservice.repository.MaintenanceRequestRepository;
 import org.conrad.maintenanceservice.repository.MaintenanceWorkerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,17 +27,24 @@ public class DemoMaintenanceSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoMaintenanceSeed.class);
 
+    private final SeedLock seedLock;
     private final MaintenanceRequestRepository requestRepository;
     private final MaintenanceWorkerRepository workerRepository;
 
-    public DemoMaintenanceSeed(MaintenanceRequestRepository requestRepository,
+    public DemoMaintenanceSeed(SeedLock seedLock, MaintenanceRequestRepository requestRepository,
                                MaintenanceWorkerRepository workerRepository) {
+        this.seedLock = seedLock;
         this.requestRepository = requestRepository;
         this.workerRepository = workerRepository;
     }
 
     @Override
     public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        seedLock.runExclusively(this::seed);
+    }
+
+    private void seed() {
         if (requestRepository.count() > 0) {
             return;
         }

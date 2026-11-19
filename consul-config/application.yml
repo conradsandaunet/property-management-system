@@ -8,6 +8,21 @@ app:
   kafka:
     topics:
       maintenance-completed: maintenance.completed
+      # Partitions of that topic. Instances of resident-service share the partitions, so this is
+      # the most instances that can read events at the same time. Only used when the topic is created.
+      partitions: 3
   seed:
     # Demo apartments, residents, invoices, maintenance requests and bookings on first start.
     demo-data: true
+
+spring:
+  cloud:
+    consul:
+      discovery:
+        # How quickly a dead instance leaves the list the gateway routes to: Consul checks every
+        # instance's health this often, so up to this long a request may still be sent to an
+        # instance that has just died (the default is 10 s).
+        health-check-interval: 3s
+        health-check-timeout: 2s
+        # Remove instances that stay unhealthy for this long, so crashed instances don't pile up.
+        health-check-critical-timeout: 1m

@@ -6,6 +6,7 @@ import org.conrad.maintenanceservice.repository.MaintenanceWorkerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,15 +22,18 @@ public class WorkerSeed implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(WorkerSeed.class);
 
+    private final SeedLock seedLock;
     private final MaintenanceWorkerRepository workerRepository;
     private final PasswordEncoder passwordEncoder;
     private final String seedPassword;
 
     public WorkerSeed(
+            SeedLock seedLock,
             MaintenanceWorkerRepository workerRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.worker-password}") String seedPassword
     ) {
+        this.seedLock = seedLock;
         this.workerRepository = workerRepository;
         this.passwordEncoder = passwordEncoder;
         this.seedPassword = seedPassword;
@@ -37,6 +41,11 @@ public class WorkerSeed implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        seedLock.runExclusively(this::seed);
+    }
+
+    private void seed() {
         if (workerRepository.count() == 0) {
             workerRepository.save(worker("Per Rørlegger", "90000001", "per@example.com",
                     EnumSet.of(MaintenanceCategory.PLUMBING, MaintenanceCategory.HEATING)));

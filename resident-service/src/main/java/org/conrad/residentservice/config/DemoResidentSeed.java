@@ -9,6 +9,7 @@ import org.conrad.residentservice.repository.ResidentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.conrad.security.SeedLock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +36,7 @@ public class DemoResidentSeed implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoResidentSeed.class);
     static final String SECOND_BUILDING = "Havneparken";
 
+    private final SeedLock seedLock;
     private final ResidentRepository residentRepository;
     private final ApartmentRepository apartmentRepository;
     private final BuildingRepository buildingRepository;
@@ -42,12 +44,14 @@ public class DemoResidentSeed implements ApplicationRunner {
     private final String residentPassword;
 
     public DemoResidentSeed(
+            SeedLock seedLock,
             ResidentRepository residentRepository,
             ApartmentRepository apartmentRepository,
             BuildingRepository buildingRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.seed.resident-password}") String residentPassword
     ) {
+        this.seedLock = seedLock;
         this.residentRepository = residentRepository;
         this.apartmentRepository = apartmentRepository;
         this.buildingRepository = buildingRepository;
@@ -57,6 +61,11 @@ public class DemoResidentSeed implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // Several instances may start together; one seeds, the others wait and then find the data.
+        seedLock.runExclusively(this::seed);
+    }
+
+    private void seed() {
         if (residentRepository.count() != 1 || apartmentRepository.count() != 1) {
             return;
         }
