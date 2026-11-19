@@ -26,8 +26,9 @@ public class MaintenanceController {
     }
 
     @PostMapping
-    public ResponseEntity<MaintenanceResponse> create(@Valid @RequestBody MaintenanceCreateRequest request) {
-        MaintenanceRequest created = maintenanceService.create(currentResidentId(), request);
+    public ResponseEntity<MaintenanceResponse> create(@Valid @RequestBody MaintenanceCreateRequest request,
+                                                      @RequestHeader("Authorization") String authorization) {
+        MaintenanceRequest created = maintenanceService.create(currentResidentId(), authorization, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(MaintenanceResponse.from(created));
     }
 

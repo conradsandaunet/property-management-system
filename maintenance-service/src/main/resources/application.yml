@@ -51,6 +51,9 @@ app:
   seed:
     worker-password: ${WORKER_SEED_PASSWORD}
 
+resident-service:
+  base-url: ${RESIDENT_SERVICE_URL:http://localhost:8081}
+
 management:
   endpoints:
     web:

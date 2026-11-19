@@ -1,5 +1,6 @@
 package org.conrad.maintenanceservice.service;
 
+import org.conrad.maintenanceservice.client.ResidentServiceClient;
 import org.conrad.maintenanceservice.dto.MaintenanceCreateRequest;
 import org.conrad.maintenanceservice.dto.MaintenanceResponse;
 import org.conrad.maintenanceservice.event.MaintenanceCompleted;
@@ -24,22 +25,30 @@ public class MaintenanceService {
     private final MaintenanceRequestRepository repository;
     private final MaintenanceWorkerRepository workerRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ResidentServiceClient residentClient;
 
     public MaintenanceService(MaintenanceRequestRepository repository, MaintenanceWorkerRepository workerRepository,
-                              ApplicationEventPublisher eventPublisher) {
+                              ApplicationEventPublisher eventPublisher, ResidentServiceClient residentClient) {
         this.repository = repository;
         this.workerRepository = workerRepository;
         this.eventPublisher = eventPublisher;
+        this.residentClient = residentClient;
     }
 
-    @Transactional
-    public MaintenanceRequest create(Long residentId, MaintenanceCreateRequest request) {
+    public MaintenanceRequest create(Long residentId, String authorizationHeader,
+                                     MaintenanceCreateRequest request) {
         MaintenanceRequest entity = new MaintenanceRequest();
         entity.setResidentId(residentId);
         entity.setCategory(request.category());
         entity.setLocation(request.location());
         entity.setDescription(request.description());
         entity.setPriority(request.priority());
+        residentClient.getCurrentResident(authorizationHeader).ifPresent(resident ->
+        {
+            entity.setApartmentId(resident.apartmentId());
+            entity.setApartmentNumber(resident.apartmentNumber());
+            entity.setBuildingName(resident.buildingName());
+        });
         return repository.save(entity);
     }
 

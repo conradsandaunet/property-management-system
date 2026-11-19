@@ -4,6 +4,6 @@ public record ResidentDto(
         Long id,
         Long apartmentId,
         String apartmentNumber,
-        String buildingNumber
+        String buildingName
 ) {
 }
