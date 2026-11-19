@@ -10,6 +10,7 @@ import org.conrad.reservationservice.repository.ResourceRepository;
 import org.conrad.reservationservice.service.ReservationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,7 +81,9 @@ class DoubleBookingTest {
         service.reserve(resource.getId(), 2L, start, start.plusHours(1));
     }
 
-    @Test
+    // Repeated because it is a race: with a single run, Postgres sometimes aborts a request with a
+    // deadlock instead of a constraint violation, and that used to surface as a 500.
+    @RepeatedTest(5)
     void concurrentBookingsOfTheSameSlotLetExactlyOneThrough() throws Exception {
         int threads = 8;
         ExecutorService pool = Executors.newFixedThreadPool(threads);
