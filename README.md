@@ -32,6 +32,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+On windows (PowerShell) use `Copy-Item .env.example .env` instead of `cp`.
+
 The first build takes a few minutes. When `docker compose ps` shows every container as
 `healthy`, open **http://localhost:3000**. The default values in `.env.example` work as they
 are, so nothing has to be edited to try the project.
